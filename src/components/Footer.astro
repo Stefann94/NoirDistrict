@@ -1,0 +1,55 @@
+---
+import Logo from './Logo.astro';
+import Icon, { type IconName } from './Icon.astro';
+import { business, fullAddress, hoursSummary, socialLinks, telHref } from '../data/business';
+import { nav } from '../data/nav';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <Logo />
+      <p>{business.kind} pentru bărbați în {business.address.city}.</p>
+      {socialLinks.length > 0 && (
+        <ul class="footer-social">
+          {socialLinks.map((s) => (
+            <li>
+              <a href={s.url} target="_blank" rel="noopener me" aria-label={s.network}>
+                <Icon name={s.network as IconName} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    <div>
+      <h2 class="footer-title">Contact</h2>
+      <address>
+        {fullAddress}<br />
+        <a href={telHref}>{business.phoneDisplay}</a>
+      </address>
+    </div>
+
+    <div>
+      <h2 class="footer-title">Program</h2>
+      <ul class="footer-list">
+        {hoursSummary.map((h) => <li>{h.days}: {h.hours}</li>)}
+      </ul>
+    </div>
+
+    <nav aria-label="Navigare subsol">
+      <h2 class="footer-title">Pagini</h2>
+      <ul class="footer-list">
+        {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        <li><a href="/politica-de-confidentialitate/">Confidențialitate</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© {year} {business.name}. Toate drepturile rezervate.</p>
+  </div>
+</footer>

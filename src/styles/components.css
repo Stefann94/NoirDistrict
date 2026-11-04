@@ -1,0 +1,158 @@
+/* Blocuri reutilizabile: servicii, program, galerie, locație, CTA. */
+
+/* ---- Servicii ---- */
+
+.services {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+.service {
+  padding-block: 1.125rem;
+  border-bottom: 1px solid var(--line);
+}
+.service-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.service h3 { font-size: 1.25rem; }
+.service-dots {
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px dotted var(--line);
+  transform: translateY(-0.3em);
+}
+.service-price {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--accent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.service-desc {
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.service-time { white-space: nowrap; }
+@media (min-width: 64rem) {
+  .services { grid-template-columns: 1fr 1fr; column-gap: 4rem; }
+  .service h3, .service-price { font-size: 1.375rem; }
+}
+
+/* Variantă compactă, pe un singur rând, folosită peste scena 3D. */
+.services-compact { grid-template-columns: 1fr; column-gap: 0; }
+.services-compact .service { padding-block: 0.75rem; }
+.services-compact .service h3,
+.services-compact .service-price { font-size: 1.125rem; }
+.services-compact .service-desc { display: none; }
+@media (min-width: 64rem) {
+  .services-compact .service-desc { display: block; font-size: 0.875rem; }
+}
+
+.service-group { padding-block: 2.5rem; }
+.service-group h2 { margin-bottom: 0.5rem; }
+@media (min-width: 64rem) { .service-group { padding-block: 3.5rem; } }
+
+/* ---- Program ---- */
+
+.hours { display: grid; }
+.hours-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.625rem;
+  border-bottom: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+}
+.hours-row:last-child { border-bottom: 0; }
+.hours dt { color: var(--muted); }
+.hours dd { color: var(--text); }
+.hours .closed dd { color: var(--muted); }
+
+/* ---- Galerie: carusel pe mobil, grilă pe desktop ---- */
+
+.gallery {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 78%;
+  gap: 0.75rem;
+  padding: 0 var(--gutter);
+  margin-inline: calc(var(--gutter) * -1);
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+}
+.gallery::-webkit-scrollbar { display: none; }
+.gallery li { scroll-snap-align: start; }
+.gallery img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+@media (min-width: 48rem) {
+  .gallery {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+}
+@media (min-width: 64rem) {
+  .gallery { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---- Locație ---- */
+
+.location { display: grid; gap: 1rem; }
+.card {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.card-title { font-size: 1.5rem; }
+.location address { font-style: normal; display: grid; gap: 0.75rem; }
+.location-line { display: flex; gap: 0.75rem; align-items: flex-start; }
+.location-line svg { flex: none; margin-top: 0.15em; color: var(--accent); }
+@media (min-width: 64rem) {
+  .location { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .card { padding: 2.5rem; }
+}
+
+/* ---- Bandă de final cu îndemn ---- */
+
+.cta { background: radial-gradient(ellipse at 50% 120%, #2a2116 0%, var(--bg) 65%); }
+.cta-inner { display: grid; gap: 1.25rem; justify-items: center; text-align: center; }
+.cta .btn-row { justify-content: center; width: 100%; }
+@media (min-width: 48rem) { .cta .btn-row { width: auto; } }
+
+/* ---- Text lung (pagini legale) ---- */
+
+.prose { max-width: 44rem; display: grid; gap: 1rem; padding-bottom: 4rem; }
+.prose h2 { font-size: 1.5rem; margin-top: 1rem; }
+.prose p { color: var(--muted); }
+
+.social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.page-head .btn-row { margin-top: 1.5rem; }
+
+.notfound { display: grid; gap: 1rem; padding-block: 5rem; }

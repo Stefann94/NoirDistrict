@@ -1,0 +1,12 @@
+---
+import { weeklyHours } from '../data/business';
+---
+
+<dl class="hours">
+  {weeklyHours.map((d) => (
+    <div class:list={['hours-row', { closed: !d.hours }]}>
+      <dt>{d.label}</dt>
+      <dd>{d.hours ?? 'Închis'}</dd>
+    </div>
+  ))}
+</dl>

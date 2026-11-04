@@ -1,0 +1,84 @@
+---
+// Formular de programare fără server: cererea pleacă pe WhatsApp către frizerie, gata completată.
+// Zilele și orele se generează în browser, din programul din business.ts.
+import { business, serviceGroups, formatPrice, telHref } from '../data/business';
+
+const config = {
+  hours: business.hours,
+  slotMinutes: business.slotMinutes,
+  days: business.bookingDays,
+  whatsapp: business.whatsapp,
+};
+---
+
+{
+  business.bookingUrl ? (
+    <div class="booking booking-external">
+      <a class="btn btn-primary" href={business.bookingUrl} target="_blank" rel="noopener">
+        Alege ora online
+      </a>
+    </div>
+  ) : (
+    <form class="booking" id="booking-form" data-config={JSON.stringify(config)} novalidate>
+      <fieldset class="booking-step">
+        <legend><span>1</span> Serviciul</legend>
+        <div class="choices">
+          {serviceGroups.flatMap((g) =>
+            g.services.map((s) => (
+              <label class="choice">
+                <input type="radio" name="service" value={s.name} data-duration={s.duration} data-price={s.price} required />
+                <span class="choice-name">{s.name}</span>
+                <span class="choice-meta">{formatPrice(s.price)} · {s.duration} min</span>
+              </label>
+            )),
+          )}
+        </div>
+      </fieldset>
+
+      <fieldset class="booking-step">
+        <legend><span>2</span> Ziua</legend>
+        <div class="chips chips-days" data-days></div>
+      </fieldset>
+
+      <fieldset class="booking-step">
+        <legend><span>3</span> Ora</legend>
+        <div class="chips chips-slots" data-slots>
+          <p class="booking-hint">Alege întâi ziua.</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="booking-step">
+        <legend><span>4</span> Datele tale</legend>
+        <div class="fields">
+          <label class="field">
+            <span>Nume</span>
+            <input name="name" autocomplete="name" required />
+          </label>
+          <label class="field">
+            <span>Telefon</span>
+            <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
+          </label>
+        </div>
+      </fieldset>
+
+      <p class="booking-error" data-error role="alert"></p>
+
+      <button class="btn btn-primary booking-submit" type="submit">Trimite cererea pe WhatsApp</button>
+      <p class="booking-note">
+        {business.owner} îți confirmă programarea pe WhatsApp. Preferi să suni?
+        <a href={telHref}>{business.phoneDisplay}</a>
+      </p>
+      <noscript>
+        <p class="booking-note">
+          Formularul are nevoie de JavaScript. Ne poți suna la <a href={telHref}>{business.phoneDisplay}</a>.
+        </p>
+      </noscript>
+    </form>
+  )
+}
+
+<script>
+  import { initBooking } from '../scripts/booking';
+  const form = document.querySelector<HTMLFormElement>('#booking-form');
+  if (form) initBooking(form);
+</script>

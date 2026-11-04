@@ -1,0 +1,106 @@
+---
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+import Header from '../components/Header.astro';
+import TabBar from '../components/TabBar.astro';
+import Footer from '../components/Footer.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { business } from '../data/business';
+import { buildGraph, type Crumb } from '../lib/schema';
+
+interface Props {
+  /** Titlul paginii. Pe prima pagină se folosește exact; pe restul se adaugă „| Noir District”. */
+  title: string;
+  description: string;
+  /** Cale către o imagine din /public, 1200×630. */
+  image?: string;
+  imageAlt?: string;
+  /** Firimituri de pâine pentru subpagini (fără „Acasă”, care se adaugă automat). */
+  crumbs?: Crumb[];
+  noindex?: boolean;
+  /** Pagina are scena 3D: header transparent și clasa `fx` setată înainte de prima randare. */
+  experience?: boolean;
+}
+
+const {
+  title,
+  description,
+  image = '/og-image.jpg',
+  imageAlt = `${business.name} – frizerie în Piatra Neamț`,
+  crumbs,
+  noindex = false,
+  experience = false,
+} = Astro.props;
+
+const site = Astro.site!;
+const isHome = Astro.url.pathname === '/';
+const fullTitle = isHome ? title : `${title} | ${business.name}`;
+const canonical = new URL(Astro.url.pathname, site);
+const imageUrl = new URL(image, site);
+const jsonLd = buildGraph({ site, url: canonical, title: fullTitle, description, image: imageUrl, crumbs });
+
+// Navigarea între pagini devine instantanee în Chrome/Edge: pagina e pre-randată când utilizatorul
+// începe să interacționeze cu link-ul. Fără JavaScript executat de noi.
+const speculationRules = {
+  prerender: [{ where: { href_matches: '/*' }, eagerness: 'moderate' }],
+};
+---
+
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    {
+      experience && (
+        // Sincron, înainte de randare: layout-ul lung pentru scroll se aplică din prima, fără salturi.
+        // Cine are „reducere animații” sau „economisire date” primește pagina statică.
+        <script is:inline>
+          if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData)) document.documentElement.classList.add('fx');
+        </script>
+      )
+    }
+
+    <Font cssVariable="--font-display" preload />
+
+    <meta name="theme-color" content="#0b0b0c" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ro_RO" />
+    <meta property="og:site_name" content={business.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="speculationrules" set:html={JSON.stringify(speculationRules)} />
+    <slot name="head" />
+  </head>
+  <body class:list={[{ home: experience }]}>
+    <a class="skip-link" href="#continut">Sari la conținut</a>
+    <Header overlay={experience} />
+    <slot name="stage" />
+    <main id="continut">
+      {crumbs && <Breadcrumbs crumbs={crumbs} />}
+      <slot />
+    </main>
+    <Footer />
+    <TabBar />
+  </body>
+</html>

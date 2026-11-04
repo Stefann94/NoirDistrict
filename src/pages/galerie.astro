@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import Gallery from '../components/Gallery.astro';
+import CtaBand from '../components/CtaBand.astro';
+
+const title = 'Galerie – tunsori și bărbi';
+const description =
+  'Galerie cu tunsori, fade-uri și bărbi realizate la Noir District, frizerie pentru bărbați în Piatra Neamț.';
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Galerie', path: '/galerie/' }]}>
+  <header class="container page-head">
+    <p class="eyebrow">Galerie</p>
+    <h1>Lucrările noastre</h1>
+    <p class="lead">Câteva dintre tunsorile și bărbile care au ieșit din Noir District.</p>
+  </header>
+
+  <section class="section" aria-label="Fotografii">
+    <div class="container">
+      <Gallery />
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>

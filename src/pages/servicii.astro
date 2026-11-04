@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import ServiceList from '../components/ServiceList.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { serviceGroups } from '../data/business';
+
+const title = 'Servicii și prețuri – tuns, barbă, bărbierit';
+const description =
+  'Lista completă de servicii și prețuri la Noir District, frizerie în Piatra Neamț: tuns clasic, skin fade, aranjat barbă, bărbierit tradițional și pachete.';
+---
+
+<Base title={title} description={description} crumbs={[{ name: 'Servicii', path: '/servicii/' }]}>
+  <header class="container page-head">
+    <p class="eyebrow">Servicii</p>
+    <h1>Servicii și prețuri</h1>
+    <p class="lead">
+      Toate prețurile includ consultație, spălat și styling. Durata e orientativă, ca să-ți poți planifica ziua.
+    </p>
+  </header>
+
+  {serviceGroups.map((group, i) => (
+    <section class="section service-group" aria-labelledby={`grup-${i}`}>
+      <div class="container">
+        <h2 id={`grup-${i}`}>{group.title}</h2>
+        <ServiceList services={group.services} />
+      </div>
+    </section>
+  ))}
+
+  <CtaBand title="Ai ales? Hai pe scaun." />
+</Base>

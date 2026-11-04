@@ -1,0 +1,37 @@
+---
+// Fără iframe Google Maps: un embed costă ~1 MB de JavaScript și setează cookie-uri.
+// Link-urile deschid direct aplicația de navigație pe telefon.
+import Hours from './Hours.astro';
+import Icon from './Icon.astro';
+import { business, fullAddress, mapsHref, wazeHref, telHref } from '../data/business';
+
+interface Props {
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { headingLevel: H = 'h2' } = Astro.props;
+---
+
+<div class="location">
+  <div class="card">
+    <H class="card-title">Unde ne găsești</H>
+    <address>
+      <p class="location-line"><Icon name="pin" /> <span>{fullAddress}</span></p>
+      <p class="location-line">
+        <Icon name="phone" /> <a href={telHref}>{business.phoneDisplay}</a>
+      </p>
+      {business.email && (
+        <p class="location-line"><a href={`mailto:${business.email}`}>{business.email}</a></p>
+      )}
+    </address>
+    <div class="btn-row">
+      <a class="btn btn-primary" href={mapsHref} target="_blank" rel="noopener">Google Maps</a>
+      <a class="btn btn-ghost" href={wazeHref} target="_blank" rel="noopener">Waze</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <H class="card-title">Program</H>
+    <Hours />
+  </div>
+</div>

@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { business, fullAddress, telHref } from '../data/business';
+
+const title = 'Politica de confidențialitate';
+const description = `Cum tratează ${business.name} datele personale ale vizitatorilor site-ului.`;
+---
+
+<Base
+  title={title}
+  description={description}
+  crumbs={[{ name: 'Confidențialitate', path: '/politica-de-confidentialitate/' }]}
+>
+  <article class="container page-head prose">
+    <h1>Politica de confidențialitate</h1>
+    <!-- TODO: de completat cu datele firmei (denumire, CUI) înainte de lansare -->
+    <p>
+      Acest site nu folosește cookie-uri, nu include scripturi de urmărire și nu colectează date personale prin
+      formulare.
+    </p>
+    <h2>Link-uri externe</h2>
+    <p>
+      Butoanele pentru Google Maps, Waze, rețelele sociale și programarea online deschid servicii externe, care au
+      propriile politici de confidențialitate.
+    </p>
+    <h2>Contact</h2>
+    <p>
+      Pentru orice întrebare legată de datele personale ne poți contacta la <a href={telHref}>{business.phoneDisplay}</a>
+      sau la sediul din {fullAddress}.
+    </p>
+  </article>
+</Base>

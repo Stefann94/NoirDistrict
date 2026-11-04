@@ -1,0 +1,45 @@
+---
+// Interfața de mobil: bară fixă jos, în zona degetului mare, cu programarea în centru.
+import Icon, { type IconName } from './Icon.astro';
+import { bookingHref } from '../data/business';
+import { isCurrent } from '../data/nav';
+
+type Tab = { href: string; label: string; icon: IconName };
+
+const path = Astro.url.pathname;
+const left: Tab[] = [
+  { href: '/', label: 'Acasă', icon: 'home' },
+  { href: '/servicii/', label: 'Prețuri', icon: 'scissors' },
+];
+const right: Tab[] = [
+  { href: '/galerie/', label: 'Galerie', icon: 'image' },
+  { href: '/contact/', label: 'Contact', icon: 'pin' },
+];
+---
+
+<nav class="tabbar" aria-label="Navigare rapidă">
+  <ul>
+    {left.map((t) => (
+      <li>
+        <a href={t.href} aria-current={isCurrent(t.href, path) ? 'page' : undefined}>
+          <Icon name={t.icon} size={22} />
+          <span>{t.label}</span>
+        </a>
+      </li>
+    ))}
+    <li class="tabbar-book">
+      <a href={bookingHref}>
+        <span class="tabbar-book-icon"><Icon name="calendar" size={22} /></span>
+        <span>Programare</span>
+      </a>
+    </li>
+    {right.map((t) => (
+      <li>
+        <a href={t.href} aria-current={isCurrent(t.href, path) ? 'page' : undefined}>
+          <Icon name={t.icon} size={22} />
+          <span>{t.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>

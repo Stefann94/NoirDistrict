@@ -1,0 +1,30 @@
+---
+// Mobil: carusel orizontal cu scroll-snap (fără JavaScript). Desktop: grilă.
+import { Picture } from 'astro:assets';
+import { galleryImages } from '../lib/gallery';
+
+interface Props {
+  limit?: number;
+}
+
+const { limit } = Astro.props;
+const images = limit ? galleryImages.slice(0, limit) : galleryImages;
+---
+
+{images.length > 0 && (
+  <ul class="gallery" aria-label="Lucrări Noir District">
+    {images.map((img) => (
+      <li>
+        <Picture
+          src={img.src}
+          alt={img.alt}
+          formats={['avif', 'webp']}
+          widths={[320, 480, 640, 960]}
+          sizes="(min-width: 64rem) 23rem, (min-width: 48rem) 45vw, 78vw"
+          loading="lazy"
+          decoding="async"
+        />
+      </li>
+    ))}
+  </ul>
+)}

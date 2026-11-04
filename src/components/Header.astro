@@ -1,0 +1,36 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { business, bookingHref, telHref } from '../data/business';
+import { nav, isCurrent } from '../data/nav';
+
+interface Props {
+  /** Header transparent, fix peste scena 3D. */
+  overlay?: boolean;
+}
+
+const { overlay = false } = Astro.props;
+const path = Astro.url.pathname;
+---
+
+<header class:list={['header', { 'header-overlay': overlay }]}>
+  <div class="container header-inner">
+    <Logo />
+
+    <nav class="header-nav" aria-label="Navigare principală">
+      <ul>
+        {nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href, path) ? 'page' : undefined}>{item.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <a class="btn btn-primary header-cta" href={bookingHref}>Programează-te</a>
+
+    <a class="header-call" href={telHref} aria-label={`Sună la ${business.phoneDisplay}`}>
+      <Icon name="phone" />
+    </a>
+  </div>
+</header>

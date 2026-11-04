@@ -1,0 +1,146 @@
+/* Prima pagină: capitole fixate pe ecran peste scena 3D.
+   Clasa `fx` pe <html> activează experiența; fără ea (animații reduse, fără WebGL),
+   pagina rămâne o succesiune obișnuită de secțiuni. `--p` (0→1) vine din scroll. */
+
+/* ---- Scena ---- */
+
+.stage { display: none; }
+.fx .stage {
+  display: block;
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 0;
+  height: 100lvh;
+  background: radial-gradient(ellipse at 66% 45%, #1d1913 0%, var(--bg) 62%);
+}
+.stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.stage.is-ready canvas { opacity: 1; }
+.stage.is-hidden { visibility: hidden; }
+
+/* Umbră pentru lizibilitate: jos pe mobil, în stânga pe desktop. */
+.stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(11 11 12 / 0.95) 22%, rgb(11 11 12 / 0.55) 48%, transparent 66%);
+}
+@media (min-width: 48rem) {
+  .stage::after {
+    background: linear-gradient(to right, rgb(11 11 12 / 0.9) 15%, rgb(11 11 12 / 0.4) 42%, transparent 60%);
+  }
+}
+
+.home main { position: relative; z-index: 1; }
+
+/* ---- Capitole ---- */
+
+.chapter { position: relative; }
+.fx .chapter { height: var(--len, 250svh); }
+
+.chapter-pin {
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding-block: calc(var(--header-h) + 2rem) 3rem;
+}
+.fx .chapter-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  align-items: flex-end;
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 1.75rem);
+}
+@media (min-width: 48rem) {
+  .fx .chapter-pin { align-items: center; padding-bottom: 3rem; }
+}
+
+.panel { display: grid; gap: 1rem; max-width: 34rem; }
+@media (min-width: 64rem) { .panel { gap: 1.25rem; max-width: 30rem; } }
+
+/* Textul apare la intrarea în capitol și dispare înainte de tranziția camerei. */
+.fx .panel {
+  --fade: clamp(0, min(calc(var(--p, 0) * 6), calc((1 - var(--p, 0)) * 6)), 1);
+  opacity: var(--fade);
+  transform: translateY(calc((1 - var(--fade)) * 1.5rem));
+}
+.fx .chapter-intro .panel {
+  --fade: clamp(0, calc((1 - var(--p, 0)) * 2.5), 1);
+}
+.fx .panel:focus-within { opacity: 1; transform: none; }
+
+.panel h2 { font-size: clamp(2rem, 1.5rem + 2.4vw, 3.5rem); }
+
+/* ---- Intro ---- */
+
+.intro-title { display: grid; gap: 0.5rem; }
+.intro-brand {
+  font-size: clamp(3.25rem, 2rem + 7vw, 7rem);
+  letter-spacing: -0.02em;
+}
+.intro-sub {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.scroll-hint::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: hint 2.4s ease-in-out infinite;
+}
+@keyframes hint {
+  0%, 100% { transform: scaleX(0.3); }
+  50% { transform: scaleX(1); }
+}
+.fx .scroll-hint { display: flex; }
+
+/* ---- Fade: trei opriri pe parcursul rotirii camerei ---- */
+
+.stops { display: grid; gap: 1.25rem; padding: 0; list-style: none; }
+.stop { display: grid; gap: 0.25rem; }
+.stop-num {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  color: var(--accent);
+}
+.stop h3 { font-size: 1.5rem; }
+.stop p { color: var(--muted); }
+
+.fx .stops { grid-template-areas: 'stop'; }
+.fx .stop {
+  grid-area: stop;
+  --show: clamp(0, min(calc((var(--p, 0) - var(--from)) * 14), calc((var(--to) - var(--p, 0)) * 14)), 1);
+  opacity: var(--show);
+  transform: translateY(calc((1 - var(--show)) * 1rem));
+}
+
+/* ---- Programare și secțiunile de după scenă ---- */
+
+.booking-section {
+  position: relative;
+  padding-block: 6rem 4rem;
+  background: linear-gradient(to bottom, transparent, var(--bg) 16rem);
+}
+.booking-head { display: grid; gap: 0.75rem; margin-bottom: 2rem; max-width: 36rem; }
+
+.solid { position: relative; background: var(--bg); }

@@ -1,0 +1,25 @@
+---
+import { formatPrice, type Service } from '../data/business';
+
+interface Props {
+  services: Service[];
+  compact?: boolean;
+}
+
+const { services, compact = false } = Astro.props;
+---
+
+<ul class:list={['services', { 'services-compact': compact }]}>
+  {services.map((s) => (
+    <li class="service">
+      <div class="service-line">
+        <h3>{s.name}</h3>
+        <span class="service-dots" aria-hidden="true"></span>
+        <p class="service-price">{formatPrice(s.price)}</p>
+      </div>
+      <p class="service-desc">
+        {s.description} <span class="service-time">· {s.duration} min</span>
+      </p>
+    </li>
+  ))}
+</ul>

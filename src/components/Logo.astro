@@ -1,0 +1,9 @@
+---
+// Wordmark în text: nu costă niciun byte de imagine.
+import { business } from '../data/business';
+---
+
+<a href="/" class="logo" aria-label={`${business.name} – Acasă`}>
+  <span class="logo-mark" aria-hidden="true">N<i>D</i></span>
+  <span class="logo-text">{business.name}</span>
+</a>
