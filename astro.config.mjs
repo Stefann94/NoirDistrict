@@ -13,7 +13,7 @@ export default defineConfig({
   },
   compressHTML: true,
   vite: {
-    // Scena 3D (Three.js, ~150 KB gzip) e un singur fișier încărcat leneș, doar pe prima pagină.
+    // Foarfeca 3D (Three.js, ~140 KB gzip) e un singur fișier, încărcat leneș doar lângă secțiunea „Ritualul”.
     build: { chunkSizeWarningLimit: 650 },
   },
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],

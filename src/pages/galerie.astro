@@ -5,19 +5,19 @@ import CtaBand from '../components/CtaBand.astro';
 
 const title = 'Galerie – tunsori și bărbi';
 const description =
-  'Galerie cu tunsori, fade-uri și bărbi realizate la Noir District, frizerie pentru bărbați în Piatra Neamț.';
+  'Galerie cu tunsori reale de la Noir District, Piatra Neamț: skin fade, taper, cărare tăiată, textured crop și bărbi conturate.';
 ---
 
 <Base title={title} description={description} crumbs={[{ name: 'Galerie', path: '/galerie/' }]}>
   <header class="container page-head">
-    <p class="eyebrow">Galerie</p>
-    <h1>Lucrările noastre</h1>
-    <p class="lead">Câteva dintre tunsorile și bărbile care au ieșit din Noir District.</p>
+    <p class="eyebrow" data-reveal>Galerie</p>
+    <h1 data-split>Lucrările noastre</h1>
+    <p class="lead" data-reveal data-delay="0.2">Tunsori și bărbi făcute la Noir District, fotografiate pe scaun, imediat după tuns.</p>
   </header>
 
-  <section class="section" aria-label="Fotografii">
+  <section class="section section-tight" aria-label="Fotografii">
     <div class="container">
-      <Gallery />
+      <Gallery layout="grid" />
     </div>
   </section>
 

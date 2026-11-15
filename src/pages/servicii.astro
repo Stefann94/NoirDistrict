@@ -11,9 +11,9 @@ const description =
 
 <Base title={title} description={description} crumbs={[{ name: 'Servicii', path: '/servicii/' }]}>
   <header class="container page-head">
-    <p class="eyebrow">Servicii</p>
-    <h1>Servicii și prețuri</h1>
-    <p class="lead">
+    <p class="eyebrow" data-reveal>Servicii</p>
+    <h1 data-split>Servicii și prețuri</h1>
+    <p class="lead" data-reveal data-delay="0.2">
       Toate prețurile includ consultație, spălat și styling. Durata e orientativă, ca să-ți poți planifica ziua.
     </p>
   </header>
@@ -21,8 +21,10 @@ const description =
   {serviceGroups.map((group, i) => (
     <section class="section service-group" aria-labelledby={`grup-${i}`}>
       <div class="container">
-        <h2 id={`grup-${i}`}>{group.title}</h2>
-        <ServiceList services={group.services} />
+        <h2 id={`grup-${i}`} data-split>{group.title}</h2>
+        <div data-reveal>
+          <ServiceList services={group.services} />
+        </div>
       </div>
     </section>
   ))}

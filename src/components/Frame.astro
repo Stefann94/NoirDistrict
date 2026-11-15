@@ -1,0 +1,18 @@
+---
+// Chenar dublu cu colțuri ornamentale, preluat din rama siglei.
+interface Props {
+  class?: string;
+  as?: 'div' | 'section' | 'article';
+  [key: string]: unknown;
+}
+
+const { class: className, as: Tag = 'div', ...rest } = Astro.props;
+---
+
+<Tag class:list={['frame', className]} {...rest}>
+  <span class="frame-corner frame-tl" aria-hidden="true"></span>
+  <span class="frame-corner frame-tr" aria-hidden="true"></span>
+  <span class="frame-corner frame-bl" aria-hidden="true"></span>
+  <span class="frame-corner frame-br" aria-hidden="true"></span>
+  <slot />
+</Tag>

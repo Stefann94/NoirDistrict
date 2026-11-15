@@ -1,8 +1,10 @@
 ---
-import { Font } from 'astro:assets';
+import { Font, Image } from 'astro:assets';
 import '../styles/global.css';
 import '../styles/layout.css';
 import '../styles/components.css';
+import '../styles/motion.css';
+import monogram from '../assets/brand/logo-monogram.png';
 import Header from '../components/Header.astro';
 import TabBar from '../components/TabBar.astro';
 import Footer from '../components/Footer.astro';
@@ -20,8 +22,8 @@ interface Props {
   /** Firimituri de pâine pentru subpagini (fără „Acasă”, care se adaugă automat). */
   crumbs?: Crumb[];
   noindex?: boolean;
-  /** Pagina are scena 3D: header transparent și clasa `fx` setată înainte de prima randare. */
-  experience?: boolean;
+  /** Identificator pentru animațiile specifice paginii (`home` pe prima pagină). */
+  page?: string;
 }
 
 const {
@@ -31,7 +33,7 @@ const {
   imageAlt = `${business.name} – frizerie în Piatra Neamț`,
   crumbs,
   noindex = false,
-  experience = false,
+  page,
 } = Astro.props;
 
 const site = Astro.site!;
@@ -57,20 +59,32 @@ const speculationRules = {
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, follow" />}
-    {
-      experience && (
-        // Sincron, înainte de randare: layout-ul lung pentru scroll se aplică din prima, fără salturi.
-        // Cine are „reducere animații” sau „economisire date” primește pagina statică.
-        <script is:inline>
-          if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData)) document.documentElement.classList.add('fx');
-        </script>
-      )
-    }
+
+    <!--
+      Sincron, înainte de prima randare: decide dacă pagina are animații (clasa `motion`) și dacă
+      se arată intro-ul (prima vizită pe prima pagină, o dată pe sesiune). Cine are „reducere animații”
+      sau „economisire date” primește pagina statică. Dacă JavaScript-ul nu pornește în 3,5 s,
+      clasele se scot, ca nimic să nu rămână ascuns.
+    -->
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (navigator.connection && navigator.connection.saveData) return;
+        d.classList.add('motion');
+        try {
+          if (location.pathname === '/' && !sessionStorage.getItem('nd-intro')) d.classList.add('intro');
+        } catch (e) {}
+        setTimeout(function () {
+          if (!window.__motion) d.classList.remove('motion', 'intro');
+        }, 3500);
+      })();
+    </script>
 
     <Font cssVariable="--font-display" preload />
 
-    <meta name="theme-color" content="#0b0b0c" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
@@ -92,15 +106,23 @@ const speculationRules = {
     <script type="speculationrules" set:html={JSON.stringify(speculationRules)} />
     <slot name="head" />
   </head>
-  <body class:list={[{ home: experience }]}>
+  <body data-page={page}>
+    <div class="curtain" aria-hidden="true">
+      <div class="curtain-inner">
+        <Image src={monogram} alt="" width={96} densities={[1, 2]} class="curtain-mono" loading="eager" />
+        <span class="curtain-line"></span>
+      </div>
+    </div>
     <a class="skip-link" href="#continut">Sari la conținut</a>
-    <Header overlay={experience} />
-    <slot name="stage" />
+    <Header />
     <main id="continut">
       {crumbs && <Breadcrumbs crumbs={crumbs} />}
       <slot />
     </main>
     <Footer />
     <TabBar />
+    <script>
+      import '../scripts/motion/index';
+    </script>
   </body>
 </html>

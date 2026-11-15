@@ -10,9 +10,9 @@ const { title = 'Rezervă-ți locul pe scaun' } = Astro.props;
 
 <section class="section cta" aria-labelledby="cta-title">
   <div class="container cta-inner">
-    <p class="eyebrow">{business.name}</p>
-    <h2 id="cta-title">{title}</h2>
-    <div class="btn-row">
+    <p class="eyebrow" data-reveal>{business.name}</p>
+    <h2 id="cta-title" data-split>{title}</h2>
+    <div class="btn-row" data-stagger>
       <a class="btn btn-primary" href={bookingHref}>Programează-te</a>
       <a class="btn btn-ghost" href={telHref}>Sună: {business.phoneDisplay}</a>
     </div>

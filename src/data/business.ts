@@ -39,14 +39,15 @@ export const business = {
   email: '', // opțional
 
   address: {
-    street: 'Strada Exemplu nr. 1', // PLACEHOLDER
+    street: 'Strada Mihai Viteazu nr. 6, bl. 12', // de pe firmă
     city: 'Piatra Neamț',
     region: 'Neamț',
-    postalCode: '610000', // PLACEHOLDER
+    postalCode: '', // PLACEHOLDER: codul poștal exact (opțional)
     country: 'RO',
   },
-  // PLACEHOLDER: coordonatele exacte, din Google Maps (click dreapta pe locație)
-  geo: { lat: 46.9275, lng: 26.3708 },
+  // PLACEHOLDER: coordonatele exacte, din Google Maps (click dreapta pe locație → primul rând).
+  // Cât timp e `null`, Google Maps și Waze caută după adresă.
+  geo: null as { lat: number; lng: number } | null,
   // Link-ul direct din Google Business Profile („Distribuie”). Dacă e gol, se generează o căutare.
   mapsUrl: '',
 
@@ -106,13 +107,15 @@ export const featuredServices = serviceGroups.flatMap((g) => g.services).filter(
 
 // ---- Valori derivate, nu trebuie editate ----
 
-export const fullAddress = `${business.address.street}, ${business.address.city} ${business.address.postalCode}`;
+export const fullAddress = [business.address.street, `${business.address.city} ${business.address.postalCode}`.trim()].join(', ');
 
 export const mapsHref =
   business.mapsUrl ||
   `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${business.name}, ${fullAddress}`)}`;
 
-export const wazeHref = `https://waze.com/ul?ll=${business.geo.lat},${business.geo.lng}&navigate=yes`;
+export const wazeHref = business.geo
+  ? `https://waze.com/ul?ll=${business.geo.lat},${business.geo.lng}&navigate=yes`
+  : `https://waze.com/ul?q=${encodeURIComponent(fullAddress)}&navigate=yes`;
 
 export const telHref = `tel:${business.phone}`;
 

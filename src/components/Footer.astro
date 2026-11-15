@@ -9,9 +9,8 @@ const year = new Date().getFullYear();
 
 <footer class="footer">
   <div class="container footer-grid">
-    <div class="footer-brand">
-      <Logo />
-      <p>{business.kind} pentru bărbați în {business.address.city}.</p>
+    <div class="footer-brand" data-reveal>
+      <Logo variant="lockup" width={190} />
       {socialLinks.length > 0 && (
         <ul class="footer-social">
           {socialLinks.map((s) => (
@@ -50,6 +49,6 @@ const year = new Date().getFullYear();
   </div>
 
   <div class="container footer-bottom">
-    <p>© {year} {business.name}. Toate drepturile rezervate.</p>
+    <p>© {year} {business.name} by {business.owner}. Toate drepturile rezervate.</p>
   </div>
 </footer>

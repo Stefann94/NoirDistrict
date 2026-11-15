@@ -1,131 +1,211 @@
 ---
+import { Picture } from 'astro:assets';
 import Base from '../layouts/Base.astro';
-import Experience from '../components/Experience.astro';
+import Logo from '../components/Logo.astro';
+import Frame from '../components/Frame.astro';
 import ServiceList from '../components/ServiceList.astro';
 import Booking from '../components/Booking.astro';
-import Gallery from '../components/Gallery.astro';
 import Location from '../components/Location.astro';
 import Icon from '../components/Icon.astro';
-import { business, serviceGroups } from '../data/business';
+import { business, serviceGroups, mapsHref } from '../data/business';
+import { galleryBySlug, galleryImages } from '../lib/gallery';
 import '../styles/home.css';
 import '../styles/booking.css';
 
 const title = 'Noir District – Frizerie pentru bărbați în Piatra Neamț';
 const description =
-  'Frizerie pentru bărbați în Piatra Neamț: tunsori clasice și moderne, skin fade, aranjat de barbă și bărbierit cu prosop cald. Vezi prețurile și programează-te online.';
+  'Noir District by Orlando, frizerie pentru bărbați în Piatra Neamț, pe Strada Mihai Viteazu: skin fade, taper, aranjat de barbă și bărbierit cu prosop cald. Vezi lucrările și prețurile și programează-te online.';
 
-const haircuts = serviceGroups.find((g) => g.title === 'Tuns')?.services ?? [];
-const beard = serviceGroups.find((g) => g.title === 'Barbă')?.services ?? [];
+// Cele două portrete din hero privesc spre centru, spre siglă.
+const heroLeft = galleryBySlug('crop-texturat-drop-fade');
+const heroRight = galleryBySlug('carare-skin-fade');
+
+const ticker = ['Skin fade', 'Taper fade', 'Cărare tăiată', 'Textured crop', 'Aranjat barbă', 'Contur cu briciul', 'Prosop cald'];
+
+// PLACEHOLDER: pașii reali, de confirmat cu Orlando
+const steps = [
+  { title: 'Consultația', text: 'Stabilim împreună forma, lungimea și ce se potrivește cu părul și cu fața ta.' },
+  { title: 'Tunsoarea', text: 'Foarfecă și mașină, lucrate pe rând, până când fade-ul curge fără nicio linie.' },
+  { title: 'Finisajul', text: 'Contur cu briciul, prosop cald și styling, ca să pleci gata de drum.' },
+];
+
+const total = String(galleryImages.length).padStart(2, '0');
 ---
 
-<Base title={title} description={description} experience>
-  <Experience slot="stage" />
+<Base title={title} description={description} page="home">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-center">
+      <Logo variant="lockup" link={false} eager width={340} class="hero-lockup" />
+      <h1 id="hero-title" class="hero-title">Frizerie pentru bărbați în {business.address.city}</h1>
+      <a class="hero-address" href={mapsHref} target="_blank" rel="noopener">
+        <Icon name="pin" size={16} />
+        {business.address.street}
+      </a>
+      <div class="btn-row hero-ctas">
+        <a class="btn btn-primary" href="#programare">Programează-te</a>
+        <a class="btn btn-ghost" href="#preturi">Vezi prețurile</a>
+      </div>
+    </div>
 
-  <section class="chapter chapter-intro" data-chapter="intro" style="--len: 220svh">
-    <div class="container chapter-pin">
-      <div class="panel">
-        <p class="eyebrow">Barbershop · {business.address.city}</p>
-        <h1 class="intro-title">
-          <span class="intro-brand">{business.name}</span>
-          <span class="intro-sub">Frizerie pentru bărbați în Piatra Neamț</span>
-        </h1>
-        <p class="lead">Tunsori precise, bărbi conturate cu briciul și timp pentru tine. Fără grabă, fără compromisuri.</p>
-        <div class="btn-row">
-          <a class="btn btn-primary" href="#programare">Programează-te</a>
-          <a class="btn btn-ghost" href="/servicii/">Vezi prețurile</a>
+    {[heroLeft, heroRight].map((img, i) => (
+      <figure class:list={['hero-photo', i === 0 ? 'hero-photo-left' : 'hero-photo-right']}>
+        <Picture
+          src={img.src}
+          alt={img.alt}
+          formats={['avif', 'webp']}
+          widths={[360, 540, 760, 1000]}
+          sizes="(min-width: 64rem) 34vw, 50vw"
+          loading="eager"
+          fetchpriority={i === 1 ? 'high' : undefined}
+        />
+      </figure>
+    ))}
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    {[0, 1].map(() => (
+      <ul class="ticker-track">
+        {ticker.map((t) => <li>{t}</li>)}
+      </ul>
+    ))}
+  </div>
+
+  <section class="works" aria-labelledby="lucrari-title">
+    <div class="works-pin">
+      <div class="container works-head">
+        <div>
+          <p class="eyebrow" data-reveal>Lucrări</p>
+          <h2 id="lucrari-title" data-split>Din scaunul nostru</h2>
         </div>
-        <p class="scroll-hint">Coboară</p>
+        <p class="works-count" aria-hidden="true"><b>01</b> / {total}</p>
       </div>
+      <ul class="works-track">
+        {galleryImages.map((img, i) => (
+          <li class="work">
+            <figure>
+              <Picture
+                src={img.src}
+                alt={img.alt}
+                formats={['avif', 'webp']}
+                widths={[360, 540, 720, 960]}
+                sizes="(min-width: 64rem) 50svh, (min-width: 48rem) 42vw, 78vw"
+                loading="lazy"
+                decoding="async"
+              />
+              <figcaption>
+                <span class="gallery-num">{String(i + 1).padStart(2, '0')}</span>
+                {img.title}
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+        <li class="work work-more">
+          <a href="/galerie/">
+            <span>Toată galeria</span>
+            <Icon name="arrow" size={28} />
+          </a>
+        </li>
+      </ul>
     </div>
   </section>
 
-  <section class="chapter" data-chapter="clipper" style="--len: 260svh" aria-labelledby="tuns-title">
-    <div class="container chapter-pin">
-      <div class="panel">
-        <p class="eyebrow">Tuns</p>
-        <h2 id="tuns-title">Executat la milimetru</h2>
-        <ServiceList services={haircuts} compact />
-        <a class="link-arrow" href="/servicii/">Toate prețurile <Icon name="arrow" size={18} /></a>
-      </div>
+  <section class="section prices" id="preturi" aria-labelledby="preturi-title">
+    <div class="container">
+      <Frame class="board">
+        <header class="board-head">
+          <p class="eyebrow eyebrow-center">Barbershop · Frizerie</p>
+          <h2 id="preturi-title">Prețuri</h2>
+          <p class="ornament" aria-hidden="true"><span></span></p>
+        </header>
+        <div class="board-groups">
+          {serviceGroups.map((group, i) => (
+            <section class="board-group" aria-labelledby={`grup-${i}`}>
+              <h3 id={`grup-${i}`} class="board-group-title">{group.title}</h3>
+              <ServiceList services={group.services} headingLevel="h4" />
+            </section>
+          ))}
+        </div>
+        <p class="board-note">Prețurile includ spălat și styling. Durata e orientativă.</p>
+      </Frame>
     </div>
   </section>
 
-  <section class="chapter" data-chapter="fade" style="--len: 480svh" aria-labelledby="fade-title">
-    <div class="container chapter-pin">
-      <div class="panel">
-        <p class="eyebrow">Semnătura casei</p>
-        <h2 id="fade-title">Anatomia unui fade</h2>
-        <ol class="stops">
-          <li class="stop" style="--from: 0.04; --to: 0.36">
-            <span class="stop-num">01</span>
-            <h3>Conturul</h3>
-            <p>Linia de la ceafă și din jurul urechilor, trasă cu trimmerul. De aici pornește totul.</p>
-          </li>
-          <li class="stop" style="--from: 0.36; --to: 0.68">
-            <span class="stop-num">02</span>
-            <h3>Degradeul</h3>
-            <p>De la piele la lungime, fără nicio linie vizibilă. Răbdare și mână sigură.</p>
-          </li>
-          <li class="stop" style="--from: 0.68; --to: 1.2">
-            <span class="stop-num">03</span>
-            <h3>Textura</h3>
-            <p>Creștetul lucrat cu foarfeca, ca tunsoarea să stea bine și a doua zi.</p>
-          </li>
-        </ol>
+  <section class="section about" aria-labelledby="despre-title">
+    <div class="container about-grid">
+      <div class="about-mark" aria-hidden="true">
+        <span class="about-by">by</span>
+        <span class="about-name">{business.owner}</span>
       </div>
-    </div>
-  </section>
-
-  <section class="chapter" data-chapter="razor" style="--len: 260svh" aria-labelledby="barba-title">
-    <div class="container chapter-pin">
-      <div class="panel">
-        <p class="eyebrow">Barbă și bărbierit</p>
-        <h2 id="barba-title">Meserie, nu bandă rulantă</h2>
-        <!-- PLACEHOLDER: povestea reală, scrisă împreună cu Orlando -->
-        <p class="lead">
-          {business.owner} lucrează cu programare, ca fiecare client să aibă timpul de care are nevoie: prosop cald,
-          brici și un contur curat.
+      <div class="about-text">
+        <p class="eyebrow" data-reveal>Despre noi</p>
+        <h2 id="despre-title" data-split>Meserie, nu bandă rulantă</h2>
+        <!-- PLACEHOLDER: textul de prezentare, de confirmat cu Orlando -->
+        <p class="lead" data-reveal>
+          {business.name} e frizeria lui {business.owner} din {business.address.city}. Lucrăm cu programare, ca
+          fiecare client să aibă timpul de care are nevoie: consultație, tuns, contur și styling, fără grabă.
         </p>
-        <ServiceList services={beard} compact />
+        <ul class="promises" data-stagger>
+          <li>
+            <h3>La ora stabilită</h3>
+            <p>Vii la ora stabilită, nu aștepți la coadă.</p>
+          </li>
+          <li>
+            <h3>Contur cu briciul</h3>
+            <p>Linii curate la ceafă, la tâmple și la barbă, finisate cu prosop cald.</p>
+          </li>
+          <li>
+            <h3>Tunsori care țin</h3>
+            <p>Lucrăm forma ca tunsoarea să stea bine și după prima spălare, nu doar la ieșirea din salon.</p>
+          </li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section class="booking-section" id="programare" data-chapter="booking" aria-labelledby="programare-title">
+  <section class="ritual" aria-labelledby="ritual-title">
+    <div class="ritual-pin">
+      <canvas class="ritual-canvas" aria-hidden="true"></canvas>
+      <div class="container ritual-content">
+        <div class="ritual-head">
+          <p class="eyebrow" data-reveal>Ritualul</p>
+          <h2 id="ritual-title" data-split>Precizie la fiecare tăietură</h2>
+        </div>
+        <ol class="ritual-steps">
+          {steps.map((s, i) => (
+            <li class="ritual-step">
+              <span class="ritual-num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </li>
+          ))}
+        </ol>
+        <div class="ritual-bar" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section booking-section" id="programare" aria-labelledby="programare-title">
     <div class="container">
       <div class="booking-head">
-        <p class="eyebrow">Programare</p>
-        <h2 id="programare-title">Rezervă-ți locul pe scaun</h2>
-        <p class="lead">Alege serviciul, ziua și ora. Cererea ajunge direct la {business.owner} pe WhatsApp.</p>
+        <p class="eyebrow" data-reveal>Programare</p>
+        <h2 id="programare-title" data-split>Rezervă-ți locul pe scaun</h2>
+        <p class="lead" data-reveal>Alege serviciul, ziua și ora. Cererea ajunge direct la {business.owner} pe WhatsApp.</p>
       </div>
-      <Booking />
+      <div data-reveal>
+        <Booking />
+      </div>
     </div>
   </section>
 
-  <div class="solid">
-    <section class="section" aria-labelledby="galerie-title">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Galerie</p>
-            <h2 id="galerie-title">Lucrări recente</h2>
-          </div>
-          <a class="link-arrow" href="/galerie/">Toată galeria <Icon name="arrow" size={18} /></a>
+  <section class="section" aria-labelledby="locatie-title">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow" data-reveal>Locație și program</p>
+          <h2 id="locatie-title" data-split>Te așteptăm pe Mihai Viteazu</h2>
         </div>
-        <Gallery limit={6} />
       </div>
-    </section>
-
-    <section class="section" aria-labelledby="locatie-title">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Locație și program</p>
-            <h2 id="locatie-title">Te așteptăm în {business.address.city}</h2>
-          </div>
-        </div>
-        <Location headingLevel="h3" />
-      </div>
-    </section>
-  </div>
+      <Location headingLevel="h3" stagger />
+    </div>
+  </section>
 </Base>

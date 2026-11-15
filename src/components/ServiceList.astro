@@ -3,17 +3,18 @@ import { formatPrice, type Service } from '../data/business';
 
 interface Props {
   services: Service[];
-  compact?: boolean;
+  /** Nivelul titlului fiecărui serviciu, ca ierarhia de titluri să rămână corectă. */
+  headingLevel?: 'h3' | 'h4';
 }
 
-const { services, compact = false } = Astro.props;
+const { services, headingLevel: H = 'h3' } = Astro.props;
 ---
 
-<ul class:list={['services', { 'services-compact': compact }]}>
+<ul class="services">
   {services.map((s) => (
     <li class="service">
       <div class="service-line">
-        <h3>{s.name}</h3>
+        <H class="service-name">{s.name}</H>
         <span class="service-dots" aria-hidden="true"></span>
         <p class="service-price">{formatPrice(s.price)}</p>
       </div>

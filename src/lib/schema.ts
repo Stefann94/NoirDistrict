@@ -58,10 +58,12 @@ export function buildGraph({ site, url, title, description, image, crumbs }: Gra
         streetAddress: business.address.street,
         addressLocality: business.address.city,
         addressRegion: business.address.region,
-        postalCode: business.address.postalCode,
+        postalCode: business.address.postalCode || undefined,
         addressCountry: business.address.country,
       },
-      geo: { '@type': 'GeoCoordinates', latitude: business.geo.lat, longitude: business.geo.lng },
+      geo: business.geo
+        ? { '@type': 'GeoCoordinates', latitude: business.geo.lat, longitude: business.geo.lng }
+        : undefined,
       areaServed: { '@type': 'City', name: business.address.city },
       openingHoursSpecification: business.hours.map((h) => ({
         '@type': 'OpeningHoursSpecification',

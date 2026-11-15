@@ -1,9 +1,44 @@
 ---
-// Wordmark în text: nu costă niciun byte de imagine.
+// Logo-ul real, decupat din grafica frizeriei: alb pe transparent, merge pe orice fundal închis.
+// `wordmark` = „Noir District” (navbar, buton de Acasă); `lockup` = sigla completă (hero, footer).
+import { Image } from 'astro:assets';
+import wordmark from '../assets/brand/logo-wordmark.png';
+import lockup from '../assets/brand/logo-lockup.png';
 import { business } from '../data/business';
+
+interface Props {
+  variant?: 'wordmark' | 'lockup';
+  /** Lățimea maximă afișată, în pixeli CSS (pentru lockup). */
+  width?: number;
+  link?: boolean;
+  eager?: boolean;
+  class?: string;
+}
+
+const { variant = 'wordmark', width = 320, link = true, eager = false, class: className } = Astro.props;
+const isWordmark = variant === 'wordmark';
+const alt = isWordmark ? `${business.name} – Acasă` : `${business.name} by ${business.owner} – Barbershop, frizerie`;
 ---
 
-<a href="/" class="logo" aria-label={`${business.name} – Acasă`}>
-  <span class="logo-mark" aria-hidden="true">N<i>D</i></span>
-  <span class="logo-text">{business.name}</span>
-</a>
+{
+  isWordmark ? (
+    <a href="/" class:list={['logo', className]}>
+      {/* Înălțimea reală e dată de CSS (--logo-h); fișierele acoperă ecrane 1x–3x. */}
+      <Image src={wordmark} alt={alt} height={56} densities={[1, 2, 3]} loading="eager" fetchpriority="high" />
+    </a>
+  ) : link ? (
+    <a href="/" class:list={['lockup', className]}>
+      <Image src={lockup} alt={alt} width={width} densities={[1, 2]} loading={eager ? 'eager' : 'lazy'} />
+    </a>
+  ) : (
+    <Image
+      src={lockup}
+      alt={alt}
+      width={width}
+      densities={[1, 2]}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      class:list={['lockup', className]}
+    />
+  )
+}

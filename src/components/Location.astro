@@ -7,12 +7,14 @@ import { business, fullAddress, mapsHref, wazeHref, telHref } from '../data/busi
 
 interface Props {
   headingLevel?: 'h2' | 'h3';
+  /** Cardurile apar pe rând la derulare. */
+  stagger?: boolean;
 }
 
-const { headingLevel: H = 'h2' } = Astro.props;
+const { headingLevel: H = 'h2', stagger = false } = Astro.props;
 ---
 
-<div class="location">
+<div class="location" data-stagger={stagger ? '' : undefined}>
   <div class="card">
     <H class="card-title">Unde ne găsești</H>
     <address>

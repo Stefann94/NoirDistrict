@@ -4,16 +4,10 @@ import Icon from './Icon.astro';
 import { business, bookingHref, telHref } from '../data/business';
 import { nav, isCurrent } from '../data/nav';
 
-interface Props {
-  /** Header transparent, fix peste scena 3D. */
-  overlay?: boolean;
-}
-
-const { overlay = false } = Astro.props;
 const path = Astro.url.pathname;
 ---
 
-<header class:list={['header', { 'header-overlay': overlay }]}>
+<header class="header">
   <div class="container header-inner">
     <Logo />
 
