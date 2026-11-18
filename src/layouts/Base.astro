@@ -73,7 +73,7 @@ const speculationRules = {
         if (navigator.connection && navigator.connection.saveData) return;
         d.classList.add('motion');
         try {
-          if (location.pathname === '/' && !sessionStorage.getItem('nd-intro')) d.classList.add('intro');
+          if (location.pathname === '/' && !location.hash && !sessionStorage.getItem('nd-intro')) d.classList.add('intro');
         } catch (e) {}
         setTimeout(function () {
           if (!window.__motion) d.classList.remove('motion', 'intro');

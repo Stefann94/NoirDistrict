@@ -1,6 +1,6 @@
 # Noir District – site
 
-Site static pentru frizeria Noir District din Piatra Neamț. Construit cu [Astro](https://astro.build): HTML generat la build, CSS inline, imagini AVIF/WebP responsive, animații la scroll (GSAP + Lenis) și o foarfecă 3D (Three.js) pe prima pagină.
+Site static pentru frizeria Noir District din Piatra Neamț. Construit cu [Astro](https://astro.build): HTML generat la build, CSS inline, imagini AVIF/WebP responsive, animații la scroll (GSAP + Lenis).
 
 ## Comenzi
 
@@ -38,7 +38,7 @@ Orice modificare din `business.ts` se propagă automat în pagini, footer, meta 
 ### Prima pagină
 
 - Hero: sigla completă în centru, încadrată de două portrete reale în alb-negru (pe mobil, portretele stau sub siglă).
-- Bandă cu servicii, „Ritualul” (foarfeca 3D), lucrări pe orizontală, tabla de prețuri cu rama din siglă, „by Orlando”, programare, locație.
+- Ordinea: hero, bandă cu servicii, lucrări pe orizontală, tabla de prețuri cu rama din siglă, programare, locație și program.
 - Paleta e strict alb-negru, ca sigla. Rombul din siglă e motivul recurent (etichete, separatoare, butonul de programare de pe mobil).
 
 ### Animații
@@ -47,15 +47,13 @@ Orice modificare din `business.ts` se propagă automat în pagini, footer, meta 
 | --- | --- |
 | Pornire, scroll fin (Lenis), intro, bara de progres, header care se ascunde | `src/scripts/motion/core.ts` |
 | Efecte generale, puse în HTML prin atribute: `data-split` (titlu pe rânduri), `data-reveal`, `data-stagger`, `data-img` | `src/scripts/motion/reveals.ts` |
-| Prima pagină: hero, bandă, ritual, lucrări, prețuri, „Orlando” | `src/scripts/motion/home.ts` |
-| Butoane magnetice (doar mouse) | `src/scripts/motion/pointer.ts` |
-| Foarfeca 3D: model / coregrafie, fire de păr | `src/scripts/scissors/model.ts`, `stage.ts` |
+| Prima pagină: hero, lucrări, prețuri, secțiunea activă din meniu | `src/scripts/motion/home.ts` |
+| Hero și tabla de prețuri potrivite pe un ecran | `src/scripts/fit.ts` |
 | Stări inițiale, cortina de intro, tranziții între pagini | `src/styles/motion.css` |
 
 - Un script mic din `<head>` pune clasa `motion` pe `<html>` înainte de randare. Fără ea, pagina e statică și complet vizibilă: cine are „reducere animații” sau „economisire date” nu descarcă GSAP deloc. Dacă JavaScript-ul nu pornește în 3,5 s, clasa se scoate, ca nimic să nu rămână ascuns.
 - Intro-ul (monograma NDO, apoi o cortină care se ridică) apare o singură dată pe sesiune, doar pe prima pagină.
-- GSAP + Lenis (~51 KB gzip) se încarcă pe toate paginile; Three.js (~140 KB gzip) doar când secțiunea „Ritualul” se apropie de ecran, iar randarea 3D rulează doar cât e vizibilă.
-- Fără WebGL, „Ritualul” rămâne o listă de pași, fără foarfecă.
+- GSAP + Lenis (~51 KB gzip) se încarcă pe toate paginile.
 
 ### Poze
 
@@ -72,7 +70,7 @@ Formularul (serviciu → zi → oră → nume/telefon) generează sloturile din 
 ## Înainte de lansare
 
 1. Înlocuiește toate valorile `PLACEHOLDER` din `src/data/business.ts`: telefon, WhatsApp, program, prețuri, coordonatele exacte (`geo`).
-2. Confirmă cu Orlando textul din secțiunea „Despre noi” de pe prima pagină.
+2. Confirmă cu Orlando programul și prețurile.
 3. Leagă domeniul în Vercel (Settings → Domains). Adresa din canonical, sitemap și Open Graph se ia automat de acolo.
 4. Creează/revendică Google Business Profile cu **exact** același nume, adresă și telefon, și pune link-ul site-ului acolo.
 5. Trimite `https://<domeniu>/sitemap-index.xml` în Google Search Console.

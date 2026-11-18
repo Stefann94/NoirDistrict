@@ -1,5 +1,6 @@
 // Formularul de programare: generează zilele și orele din program și trimite cererea pe WhatsApp.
 import type { DayCode, OpeningHours } from '../data/business';
+import { checkName, checkPhone } from './validate';
 
 interface Config {
   hours: OpeningHours[];
@@ -118,25 +119,94 @@ export function initBooking(form: HTMLFormElement) {
     }
   });
 
+  /* ---- Validarea numelui și a telefonului ---- */
+
+  const fields = {
+    name: { input: form.querySelector<HTMLInputElement>('input[name="name"]')!, check: checkName },
+    phone: { input: form.querySelector<HTMLInputElement>('input[name="phone"]')!, check: checkPhone },
+  };
+  const touched = new Set<keyof typeof fields>();
+
+  /** Verifică un câmp, arată mesajul sub el și întoarce valoarea curățată (sau null). */
+  function validate(key: keyof typeof fields, show = true) {
+    const { input, check } = fields[key];
+    const result = check(input.value);
+    const errorBox = document.getElementById(input.getAttribute('aria-describedby')!)!;
+    if (show) {
+      errorBox.textContent = result.ok ? '' : result.error; // textContent: nimic nu e interpretat ca HTML
+      input.setAttribute('aria-invalid', String(!result.ok));
+    }
+    return result.ok ? result.value : null;
+  }
+
+  for (const key of Object.keys(fields) as (keyof typeof fields)[]) {
+    const { input } = fields[key];
+    // Mesajul apare când ieși din câmp; după aceea, se actualizează pe măsură ce scrii.
+    input.addEventListener('blur', () => {
+      if (input.value.trim()) touched.add(key);
+      if (touched.has(key)) {
+        const value = validate(key);
+        if (value) input.value = value; // forma standard: „Ion Popescu”, „+40 712 345 678”
+      }
+    });
+    input.addEventListener('input', () => {
+      if (touched.has(key)) validate(key);
+    });
+  }
+
+  /* ---- Trimiterea ---- */
+
+  const openedAt = Date.now();
+  let lastSent = 0;
+  const trap = form.querySelector<HTMLInputElement>('input[name="website"]');
+  const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const data = new FormData(form);
-    const service = selectedService();
-    const day = data.get('day') as string | null;
-    const slot = data.get('slot') as string | null;
-    const name = String(data.get('name') ?? '').trim();
-    const phone = String(data.get('phone') ?? '').trim();
+    errorEl.textContent = '';
 
-    const missing = !service ? 'serviciul' : !day ? 'ziua' : !slot ? 'ora' : !name ? 'numele' : null;
+    // Roboții completează câmpul ascuns sau trimit în prima secundă: îi ignorăm fără zgomot.
+    if (trap?.value || Date.now() - openedAt < 1500) return;
+    // Protecție la apăsări repetate: o singură cerere la câteva secunde.
+    if (Date.now() - lastSent < 5000) return;
+
+    const service = selectedService();
+    const dayInput = form.querySelector<HTMLInputElement>('input[name="day"]:checked');
+    const slotInput = form.querySelector<HTMLInputElement>('input[name="slot"]:checked');
+
+    // Ziua și ora trebuie să fie unele dintre cele generate de noi și încă disponibile.
+    const day = dayInput && /^\d{4}-\d{2}-\d{2}$/.test(dayInput.value) && !dayInput.disabled ? dayInput.value : null;
+    const slot =
+      day && slotInput && /^\d{2}:\d{2}$/.test(slotInput.value) && slotsFor(fromKey(day)).includes(slotInput.value)
+        ? slotInput.value
+        : null;
+
+    const name = validate('name');
+    const phone = validate('phone');
+    touched.add('name').add('phone');
+
+    const missing = !service ? 'serviciul' : !day ? 'ziua' : !slot ? 'ora' : null;
     if (missing) {
       errorEl.textContent = `Mai alege ${missing}.`;
+      (missing === 'serviciul' ? form.querySelector('input[name="service"]') : missing === 'ziua' ? daysEl : slotsEl)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
-    if (phone.replace(/\D/g, '').length < 9) {
-      errorEl.textContent = 'Numărul de telefon pare incomplet.';
+    if (!name || !phone) {
+      errorEl.textContent = 'Verifică datele de mai sus.';
+      (name ? fields.phone.input : fields.name.input).focus();
       return;
     }
 
+    fields.name.input.value = name;
+    fields.phone.input.value = phone;
+    lastSent = Date.now();
+    if (submit) {
+      submit.disabled = true;
+      setTimeout(() => (submit.disabled = false), 5000);
+    }
+
+    // Mesajul e text simplu, codificat în link: nu poate rula nimic, nici aici, nici la Orlando.
     const message = [
       'Bună ziua! Aș dori o programare la Noir District:',
       `• Serviciu: ${service!.value} (${service!.dataset.price} lei)`,
@@ -145,7 +215,7 @@ export function initBooking(form: HTMLFormElement) {
       `• Nume: ${name}`,
       `• Telefon: ${phone}`,
     ].join('\n');
-    location.href = `https://wa.me/${config.whatsapp}?text=${encodeURIComponent(message)}`;
+    location.href = `https://wa.me/${encodeURIComponent(config.whatsapp)}?text=${encodeURIComponent(message)}`;
   });
 
   renderDays();

@@ -4,18 +4,15 @@ const root = document.documentElement;
 
 async function start() {
   (window as unknown as { __motion: boolean }).__motion = true;
-  const [{ chrome, introDone, finePointer }, { reveals }, { pointer }] = await Promise.all([
-    import('./core'),
-    import('./reveals'),
-    import('./pointer'),
-  ]);
+  const [{ chrome, introDone, settle }, { reveals }] = await Promise.all([import('./core'), import('./reveals')]);
   chrome();
   reveals();
-  if (finePointer) pointer();
   if (document.body.dataset.page === 'home') {
     const { home } = await import('./home');
     home(introDone);
   }
+  // După ce toate secțiunile fixate pe ecran și-au calculat înălțimea: poziția corectă la sosire.
+  settle();
 }
 
 if (root.classList.contains('motion')) {

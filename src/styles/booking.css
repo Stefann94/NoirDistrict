@@ -1,34 +1,24 @@
-/* Formularul de programare. Pe mobil: pași unul sub altul, zile și ore derulabile orizontal. */
+/* Formularul de programare, compact, ca să încapă pe cât posibil pe un ecran.
+   Telefon: pași unul sub altul; servicii câte două pe rând; zile și ore derulabile orizontal.
+   Tabletă: servicii pe două coloane, restul dedesubt.
+   Desktop: trei coloane — 1 Serviciul | 2 Ziua + 3 Ora | 4 Datele tale + trimitere. */
 
 .booking {
   display: grid;
-  gap: 1.75rem;
-  padding: 1.25rem;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  gap: 1.5rem;
+  padding: 1.125rem;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: calc(var(--radius) * 2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-@media (min-width: 64rem) {
-  .booking {
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem 3rem;
-    padding: 2.5rem;
-  }
-  .booking-step:first-child { grid-row: span 3; }
-  .booking-error,
-  .booking-submit,
-  .booking-note { grid-column: 2; }
 }
 
-.booking-step { display: grid; gap: 0.875rem; min-width: 0; padding: 0; border: 0; }
+.booking-step { display: grid; gap: 0.625rem; min-width: 0; padding: 0; border: 0; }
 .booking-step legend {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  margin-bottom: 0.875rem;
-  font-size: 0.75rem;
+  margin-bottom: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -36,24 +26,24 @@
 .booking-step legend span {
   display: grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
   border: 1px solid var(--accent);
   border-radius: 50%;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   letter-spacing: 0;
   color: var(--accent);
 }
 
-/* Servicii: carduri selectabile */
-.choices { display: grid; gap: 0.5rem; }
+/* Servicii: carduri selectabile, câte două pe rând */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
 .choice {
   position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding: 0.875rem 1rem;
+  display: grid;
+  align-content: center;
+  gap: 0.125rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   cursor: pointer;
@@ -61,34 +51,33 @@
 }
 .choice:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
 .choice input { position: absolute; opacity: 0; pointer-events: none; }
-.choice-name { font-weight: 500; }
-.choice-meta { font-size: 0.875rem; color: var(--muted); white-space: nowrap; }
+.choice-name { font-size: 0.875rem; font-weight: 500; line-height: 1.25; }
+.choice-meta { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
 .choice:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .choice:has(input:checked) .choice-meta { color: var(--accent); }
 .choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Zile și ore: pastile derulabile pe mobil, grilă pe desktop */
+/* Zile și ore: pastile derulabile pe orizontală (telefon), grilă (desktop) */
 .chips {
   display: flex;
-  gap: 0.5rem;
-  margin-inline: -1.25rem;
-  padding-inline: 1.25rem;
+  gap: 0.375rem;
+  margin-inline: -1.125rem;
+  padding-inline: 1.125rem;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
 }
 .chips::-webkit-scrollbar { display: none; }
-@media (min-width: 64rem) {
-  .chips { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
-}
 .chip {
   position: relative;
   flex: none;
   display: grid;
   justify-items: center;
-  gap: 0.125rem;
-  min-width: 4.25rem;
-  padding: 0.625rem 0.75rem;
+  align-content: center;
+  gap: 0.0625rem;
+  min-width: 3.5rem;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.5rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   cursor: pointer;
@@ -97,35 +86,78 @@
   transition: border-color 0.2s, background-color 0.2s;
 }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
-.chip-top { font-weight: 600; font-size: 0.9375rem; text-transform: capitalize; }
-.chip-bottom { font-size: 0.75rem; color: var(--muted); }
+.chip-top { font-weight: 600; font-size: 0.8125rem; line-height: 1.2; text-transform: capitalize; }
+.chip-bottom { font-size: 0.6875rem; line-height: 1.2; color: var(--muted); }
 .chip:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
 .chip:has(input:checked) { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
 .chip:has(input:checked) .chip-bottom { color: var(--accent-ink); }
 .chip:has(input:disabled) { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
 .chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.booking-hint { font-size: 0.875rem; color: var(--muted); }
+.booking-hint { font-size: 0.8125rem; color: var(--muted); }
 
 /* Date personale */
-.fields { display: grid; gap: 0.75rem; }
-.field { display: grid; gap: 0.375rem; font-size: 0.8125rem; color: var(--muted); }
+.fields { display: grid; gap: 0.625rem; }
+.field { display: grid; gap: 0.25rem; font-size: 0.75rem; color: var(--muted); }
 .field input {
-  min-height: 3rem;
-  padding: 0 1rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  font-size: 1rem; /* 16px: iOS nu mai face zoom la focus */
+  font-size: max(16px, 1rem); /* minim 16 px: iPhone nu mai face zoom la focus */
 }
 .field input:focus { outline: none; border-color: var(--accent); }
+.field input::placeholder { color: color-mix(in srgb, var(--muted) 55%, transparent); }
+.field input[aria-invalid='true'] { border-color: #e8937f; }
+.field-error { min-height: 0; font-size: 0.75rem; line-height: 1.35; color: #e8937f; }
+.field-error:empty { display: none; }
+
+/* Capcana pentru roboți: scoasă din ecran (nu `display: none`, pe care unii roboți îl recunosc). */
+.booking-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
 
 .booking-error:empty { display: none; }
-.booking-error { color: #e8937f; font-size: 0.9375rem; }
-.booking-submit { width: 100%; min-height: 3.25rem; }
-.booking-note { font-size: 0.8125rem; color: var(--muted); }
+.booking-error { color: #e8937f; font-size: 0.875rem; }
+.booking-submit { width: 100%; min-height: 3rem; }
+.booking-note { font-size: 0.75rem; color: var(--muted); }
 .booking-note a { color: var(--accent); }
 
 .booking-external { justify-items: start; }
+
+/* Tabletă: servicii pe 4 coloane, nume + telefon alăturate */
+@media (min-width: 48rem) {
+  .booking { padding: 1.5rem; gap: 1.5rem 2rem; }
+  .choices { grid-template-columns: repeat(4, 1fr); }
+  .fields { grid-template-columns: 1fr 1fr; }
+}
+
+/* Desktop: trei coloane */
+@media (min-width: 64rem) {
+  .booking {
+    grid-template-columns: 1.15fr 1.1fr 0.9fr;
+    /* Ultimul rând preia spațiul rămas: în coloana a 3-a, butonul vine imediat sub câmpuri. */
+    grid-template-rows: auto auto auto auto 1fr;
+    gap: 1.25rem 2.5rem;
+    align-items: start;
+    padding: 2rem;
+  }
+  .choices { grid-template-columns: 1fr; }
+  .chips { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
+  .fields { grid-template-columns: 1fr; }
+
+  .booking-step:nth-of-type(1) { grid-column: 1; grid-row: 1 / -1; }
+  .booking-step:nth-of-type(2) { grid-column: 2; grid-row: 1; }
+  .booking-step:nth-of-type(3) { grid-column: 2; grid-row: 2 / -1; }
+  .booking-step:nth-of-type(4) { grid-column: 3; grid-row: 1; }
+  .booking-error { grid-column: 3; grid-row: 2; }
+  .booking-submit { grid-column: 3; grid-row: 3; }
+  .booking-note { grid-column: 3; grid-row: 4; }
+}

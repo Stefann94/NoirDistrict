@@ -2,7 +2,7 @@
 import Logo from './Logo.astro';
 import Icon, { type IconName } from './Icon.astro';
 import { business, fullAddress, hoursSummary, socialLinks, telHref } from '../data/business';
-import { nav } from '../data/nav';
+import { pages } from '../data/nav';
 
 const year = new Date().getFullYear();
 ---
@@ -42,8 +42,7 @@ const year = new Date().getFullYear();
     <nav aria-label="Navigare subsol">
       <h2 class="footer-title">Pagini</h2>
       <ul class="footer-list">
-        {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
-        <li><a href="/politica-de-confidentialitate/">Confidențialitate</a></li>
+        {pages.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
       </ul>
     </nav>
   </div>

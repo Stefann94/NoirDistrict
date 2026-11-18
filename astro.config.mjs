@@ -12,10 +12,8 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   compressHTML: true,
-  vite: {
-    // Foarfeca 3D (Three.js, ~140 KB gzip) e un singur fișier, încărcat leneș doar lângă secțiunea „Ritualul”.
-    build: { chunkSizeWarningLimit: 650 },
-  },
+  // Bara de unelte Astro (doar în `npm run dev`) acoperă butoanele din bara de jos de pe telefon.
+  devToolbar: { enabled: false },
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
   fonts: [
     {

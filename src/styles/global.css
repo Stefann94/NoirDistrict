@@ -20,6 +20,7 @@
   --header-h: 3.75rem;
   --logo-h: 2.5rem;
   --tabbar-h: 4rem;
+  --ticker-h: 3.25rem;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   color-scheme: dark;
@@ -31,6 +32,7 @@
     --header-h: 5rem;
     --logo-h: 3.25rem;
     --tabbar-h: 0px;
+    --ticker-h: 4.25rem;
   }
 }
 
@@ -42,6 +44,21 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+
+/* Scalare proporțională: toate dimensiunile sunt în rem, deci dacă mărimea de bază urmează lățimea
+   ferestrei, tot site-ul se micșorează/mărește împreună și își păstrează compoziția (ca un afiș).
+   Se rearanjează doar la praguri extreme: sub 1200 px (se oprește din micșorat) și la trecerea
+   pe tabletă / telefon. Pragurile @media în rem rămân la 16 px (nu depind de mărimea de mai jos). */
+/* Telefon: proiectat pe 390 px. */
+html { font-size: clamp(14px, calc(100vw / 24.375), 17px); }
+/* Tabletă: fix. */
+@media (min-width: 48rem) {
+  html { font-size: 15px; }
+}
+/* Desktop: proiectat pe 1440 px (16 px), între 1200 px și ecranele foarte mari. */
+@media (min-width: 64rem) {
+  html { font-size: clamp(13.33px, calc(100vw / 90), 21px); }
 }
 
 @media (prefers-reduced-motion: no-preference) {

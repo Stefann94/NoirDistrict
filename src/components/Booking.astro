@@ -50,14 +50,42 @@ const config = {
       <fieldset class="booking-step">
         <legend><span>4</span> Datele tale</legend>
         <div class="fields">
-          <label class="field">
-            <span>Nume</span>
-            <input name="name" autocomplete="name" required />
-          </label>
-          <label class="field">
-            <span>Telefon</span>
-            <input name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
-          </label>
+          <div class="field">
+            <label for="booking-name">Nume și prenume</label>
+            <input
+              id="booking-name"
+              name="name"
+              autocomplete="name"
+              autocapitalize="words"
+              spellcheck="false"
+              enterkeyhint="next"
+              maxlength="40"
+              placeholder="ex. Andrei Popescu"
+              aria-describedby="booking-name-error"
+              required
+            />
+            <p class="field-error" id="booking-name-error" aria-live="polite"></p>
+          </div>
+          <div class="field">
+            <label for="booking-phone">Telefon</label>
+            <input
+              id="booking-phone"
+              name="phone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              enterkeyhint="send"
+              maxlength="20"
+              placeholder="07xx xxx xxx"
+              aria-describedby="booking-phone-error"
+              required
+            />
+            <p class="field-error" id="booking-phone-error" aria-live="polite"></p>
+          </div>
+        </div>
+        {/* Capcană pentru roboți: invizibilă pentru oameni, completată doar de programele automate. */}
+        <div class="booking-trap" aria-hidden="true">
+          <label>Site web <input name="website" tabindex="-1" autocomplete="off" /></label>
         </div>
       </fieldset>
 

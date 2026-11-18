@@ -12,10 +12,6 @@ const captions: Record<string, { title: string; alt: string }> = {
     title: 'Textured crop și mid fade',
     alt: 'Păr texturat pe creștet cu mid fade până la piele',
   },
-  'taper-fade-barba': {
-    title: 'Taper fade și barbă conturată',
-    alt: 'Taper fade discret și barbă plină, conturată',
-  },
   'low-taper-texturat': {
     title: 'Low taper, păr lung texturat',
     alt: 'Low taper la ceafă și păr lung texturat pe creștet, văzut din spate',

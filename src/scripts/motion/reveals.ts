@@ -60,12 +60,13 @@ export function reveals(scope: ParentNode = document) {
 
   scope.querySelectorAll<HTMLElement>('[data-img]').forEach((el) => {
     const img = el.querySelector('img');
+    // Capacul din motion.css (::before) se retrage în sus: doar transform, fără redesenare.
     gsap.fromTo(
       el,
-      { clipPath: 'inset(100% 0% 0% 0%)' },
+      { '--cover': 1 },
       {
-        clipPath: 'inset(0% 0% 0% 0%)',
-        duration: 1.5,
+        '--cover': 0,
+        duration: 1.4,
         ease: 'expo.inOut',
         scrollTrigger: { trigger: el, start: START, once: true },
       },

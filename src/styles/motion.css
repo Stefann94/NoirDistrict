@@ -9,15 +9,32 @@
 .motion [data-stagger] > *,
 .motion .hero-lockup,
 .motion .hero-title,
-.motion .hero-address,
-.motion .hero-ctas > *,
-.motion .about-name { opacity: 0; }
+.motion .hero-words,
+.motion .hero-foot,
+.motion .hero-frame,
+.motion .hero-ctas > * { opacity: 0; }
 
+/* Dezvăluirea pozelor: un „capac” de culoarea fundalului care se retrage în sus.
+   Se animă doar `transform` (prin --cover, de la 1 la 0), pe care îl face placa video:
+   nicio poză nu se redesenează în timpul animației. */
 .motion [data-img],
-.motion .hero-photo,
-.motion .work picture { clip-path: inset(100% 0 0 0); }
-
-.motion .board { clip-path: inset(-14px -14px 100% -14px); }
+.motion .work picture,
+.motion .board { position: relative; }
+.motion [data-img]::before,
+.motion .hero-bg::before,
+.motion .work picture::before,
+.motion .board::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 3;
+  background: var(--bg);
+  transform: scaleY(var(--cover, 1));
+  transform-origin: 50% 0;
+  pointer-events: none;
+}
+/* Tabla de prețuri: capacul acoperă și rama dublă, cu colțuri, din afara ei. */
+.motion .board::before { inset: -16px; }
 
 /* ---- Cortina de intro (prima vizită pe prima pagină) ---- */
 
@@ -39,6 +56,17 @@
   transform: scaleX(0);
 }
 .intro body { overflow: hidden; }
+
+/* ---- Tăietura la navigare: peste conținut, sub header și bara de jos ---- */
+
+.nav-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+}
 
 /* ---- Bara de progres ---- */
 

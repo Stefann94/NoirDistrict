@@ -2,7 +2,7 @@
 import Logo from './Logo.astro';
 import Icon from './Icon.astro';
 import { business, bookingHref, telHref } from '../data/business';
-import { nav, isCurrent } from '../data/nav';
+import { sections, sectionHref } from '../data/nav';
 
 const path = Astro.url.pathname;
 ---
@@ -13,15 +13,21 @@ const path = Astro.url.pathname;
 
     <nav class="header-nav" aria-label="Navigare principală">
       <ul>
-        {nav.map((item) => (
+        {sections.map((s) => (
           <li>
-            <a href={item.href} aria-current={isCurrent(item.href, path) ? 'page' : undefined}>{item.label}</a>
+            <a
+              href={sectionHref(s.id)}
+              data-section={s.id}
+              aria-current={'page' in s && path === s.page ? 'page' : undefined}
+            >
+              {s.label}
+            </a>
           </li>
         ))}
       </ul>
     </nav>
 
-    <a class="btn btn-primary header-cta" href={bookingHref}>Programează-te</a>
+    <a class="btn btn-primary header-cta" href={bookingHref} data-section="programare">Programează-te</a>
 
     <a class="header-call" href={telHref} aria-label={`Sună la ${business.phoneDisplay}`}>
       <Icon name="phone" />

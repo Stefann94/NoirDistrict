@@ -1,41 +1,44 @@
 ---
 // Interfața de mobil: bară fixă jos, în zona degetului mare, cu programarea în centru.
+// Fiecare buton duce la secțiunea lui de pe prima pagină; pe prima pagină, butonul activ
+// urmează secțiunea în care te afli.
 import Icon, { type IconName } from './Icon.astro';
 import { bookingHref } from '../data/business';
-import { isCurrent } from '../data/nav';
+import { sectionHref } from '../data/nav';
 
-type Tab = { href: string; label: string; icon: IconName };
+type Tab = { href: string; section: string; label: string; icon: IconName; page?: string };
 
 const path = Astro.url.pathname;
 const left: Tab[] = [
-  { href: '/', label: 'Acasă', icon: 'home' },
-  { href: '/servicii/', label: 'Prețuri', icon: 'scissors' },
+  { href: '/', section: 'top', label: 'Acasă', icon: 'home' },
+  { href: sectionHref('preturi'), section: 'preturi', label: 'Prețuri', icon: 'scissors', page: '/servicii/' },
 ];
 const right: Tab[] = [
-  { href: '/galerie/', label: 'Galerie', icon: 'image' },
-  { href: '/contact/', label: 'Contact', icon: 'pin' },
+  { href: sectionHref('lucrari'), section: 'lucrari', label: 'Lucrări', icon: 'image', page: '/galerie/' },
+  { href: sectionHref('contact'), section: 'contact', label: 'Contact', icon: 'pin', page: '/contact/' },
 ];
+const current = (t: Tab) => (t.section === 'top' ? path === '/' : path === t.page);
 ---
 
 <nav class="tabbar" aria-label="Navigare rapidă">
   <ul>
     {left.map((t) => (
       <li>
-        <a href={t.href} aria-current={isCurrent(t.href, path) ? 'page' : undefined}>
+        <a href={t.href} data-section={t.section} aria-current={current(t) ? 'page' : undefined}>
           <Icon name={t.icon} size={22} />
           <span>{t.label}</span>
         </a>
       </li>
     ))}
     <li class="tabbar-book">
-      <a href={bookingHref}>
+      <a href={bookingHref} data-section="programare">
         <span class="tabbar-book-icon"><Icon name="calendar" size={22} /></span>
         <span>Programare</span>
       </a>
     </li>
     {right.map((t) => (
       <li>
-        <a href={t.href} aria-current={isCurrent(t.href, path) ? 'page' : undefined}>
+        <a href={t.href} data-section={t.section} aria-current={current(t) ? 'page' : undefined}>
           <Icon name={t.icon} size={22} />
           <span>{t.label}</span>
         </a>
