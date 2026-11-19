@@ -191,17 +191,3 @@
 @media (min-width: 64rem) {
   .footer-grid { grid-template-columns: 1.5fr 1fr 1fr 1fr; }
 }
-
-/* ---- Footer pe telefon: compact, centrat, fără să repete prea mult secțiunea de contact ---- */
-@media (max-width: 47.99rem) {
-  .footer { padding-top: 2.5rem; text-align: center; }
-  .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.75rem 1rem; }
-  .footer-brand { grid-column: 1 / -1; justify-items: center; gap: 1rem; }
-  .footer-brand .lockup { width: 8.5rem; }
-  .footer-social { justify-content: center; }
-  .footer-title { margin-bottom: 0.5rem; }
-  .footer address, .footer-list { font-size: 0.8125rem; line-height: 1.7; }
-  .footer-grid > nav { grid-column: 1 / -1; }
-  .footer-grid > nav .footer-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1.25rem; }
-  .footer-bottom { margin-top: 2rem; padding-block: 1.25rem; font-size: 0.75rem; text-align: center; }
-}

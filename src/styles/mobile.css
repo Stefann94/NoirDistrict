@@ -1,0 +1,215 @@
+/* ======================================================================
+   TELEFON (sub 768 px) — fiecare secțiune gândită separat pentru telefon:
+   compoziție centrată, aceeași logică și același aspect ca pe desktop.
+   Regulile încep cu `:root` ca să aibă prioritate față de stilurile secțiunilor,
+   indiferent de ordinea în care se încarcă fișierele. Desktopul nu e afectat.
+   ====================================================================== */
+
+/* Elemente care există doar pe telefon: ascunse pe ecrane mari */
+.works-progress { display: none; }
+
+@media (max-width: 47.99rem) {
+  /* ---------------- Header: sigla la mijloc, telefonul în dreapta ---------------- */
+  :root .header-inner {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr 2.75rem;
+    gap: 0;
+  }
+  :root .header-inner .logo { grid-column: 2; justify-self: center; }
+  :root .header-call { grid-column: 3; justify-self: end; }
+
+  /* Titlurile de secțiune: centrate, cu eticheta deasupra */
+  :root .eyebrow { justify-content: center; }
+  :root .section-head { justify-items: center; text-align: center; margin-bottom: 1.75rem; }
+  :root .section-head h2 { font-size: 2rem; }
+  :root .lead { margin-inline: auto; }
+
+  /* ---------------- Hero: totul centrat ---------------- */
+  :root .hero-content { justify-items: center; text-align: center; padding-bottom: 4.5rem; }
+  :root .hero-lockup { width: min(64vw, 15.5rem); }
+  :root .hero-words { justify-content: center; font-size: 2.125rem; }
+  :root .hero-title { margin-inline: auto; font-size: 0.6875rem; }
+  :root .hero-ctas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  :root .hero-ctas .btn {
+    min-height: 2.875rem;
+    padding-inline: 0.5rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+  }
+  :root .hero-foot { justify-content: center; }
+
+  /* ---------------- Lucrări: carusel centrat, cu marginile pozelor vecine ---------------- */
+  :root .works { padding-block: 3rem; }
+  :root .works-head {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  :root .works-head h2 { margin-top: 0.5rem; font-size: 2rem; }
+  :root .works-count { display: none; } /* contorul e sub carusel, lângă bara de progres */
+  :root .works-track {
+    gap: 0.75rem;
+    padding-inline: 11vw;
+    scroll-padding-inline: 11vw;
+  }
+  :root .work { width: 78vw; scroll-snap-align: center; }
+  :root .work figure { gap: 0.75rem; }
+  :root .work picture { border-radius: calc(var(--radius) * 3); }
+  :root .work figcaption {
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1.0625rem;
+    text-align: center;
+  }
+  :root .work-more { align-self: stretch; }
+  :root .work-more a { height: auto; aspect-ratio: 4 / 5; font-size: 1.5rem; border-radius: calc(var(--radius) * 3); }
+  :root .works-progress {
+    display: grid;
+    justify-items: center;
+    gap: 0.625rem;
+    margin-top: 1.5rem;
+  }
+  :root .works-progress-bar {
+    display: block;
+    width: 40vw;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  :root .works-progress-bar span {
+    display: block;
+    height: 100%;
+    background: var(--text);
+    transform: scaleX(0.17);
+    transform-origin: 0 50%;
+    transition: transform 0.15s linear;
+  }
+  :root .works-progress-count {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  :root .works-progress-count b { font-weight: 400; color: var(--text); }
+
+  /* ---------------- Prețuri: tabla centrată, câte o categorie pe file ---------------- */
+  :root .board { padding: 1.75rem 1rem 1.25rem; }
+  :root .board-head { gap: 0.5rem; margin-bottom: 1.25rem; }
+  :root .board-head h2 { font-size: 2.5rem; }
+  :root .board-tabs:not([hidden]) {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    margin-bottom: 1rem;
+    padding: 0.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+  }
+  :root .board-tab {
+    min-height: 2.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s;
+  }
+  :root .board-tab[aria-selected='true'] { background: var(--text); color: var(--bg); }
+  :root .board-tab:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  :root .board.has-tabs .board-group { display: none; margin-top: 0; }
+  :root .board.has-tabs .board-group.is-active { display: block; animation: m-tab-in 0.35s ease-out; }
+  :root .board.has-tabs .board-group-title { display: none; }
+  :root .board .service { padding-block: 0.875rem; }
+  :root .board .service-name,
+  :root .board .service-price { font-size: 1.1875rem; }
+  :root .board .service-desc { margin-top: 0.25rem; font-size: 0.8125rem; line-height: 1.45; }
+  :root .board .service-time { font-size: inherit; }
+  :root .board-note { margin-top: 1rem; font-size: 0.75rem; }
+
+  /* ---------------- Programare: antet centrat, asistent pas cu pas ---------------- */
+  :root .booking-head { justify-items: center; text-align: center; margin-bottom: 1.25rem; }
+  :root .booking-head h2 { font-size: 1.75rem; }
+  :root .booking-head .lead { font-size: 0.8125rem; }
+  :root .wizard { justify-items: center; text-align: center; }
+  :root .wizard-top { flex-direction: column; align-items: center; gap: 0.25rem; }
+  :root .wizard-bar { width: 100%; }
+  :root .wizard-picks { justify-content: center; }
+  :root .booking-done { padding-inline: 1rem; }
+
+  /* ---------------- Locație: totul centrat, butoane mari ---------------- */
+  :root .location { gap: 0.75rem; }
+  :root .location .card { justify-items: center; gap: 1rem; padding: 1.5rem 1.125rem; text-align: center; }
+  :root .card-title { font-size: 1.5rem; }
+  :root .location address { justify-items: center; gap: 0.375rem; }
+  :root .location-line { justify-content: center; align-items: center; gap: 0.5rem; }
+  /* Fără iconițe pe rândurile centrate (ar sta izolate în stânga); le au butoanele mari de dedesubt. */
+  :root .location-line svg { display: none; }
+  :root .location-buttons { display: none; }
+  :root .location-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    list-style: none;
+  }
+  :root .location-actions a {
+    display: grid;
+    justify-items: center;
+    gap: 0.375rem;
+    padding: 0.875rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s;
+  }
+  :root .location-actions li:first-child a { background: var(--text); color: var(--bg); border-color: var(--text); }
+  :root .location-actions a:active { background: var(--surface-2); }
+  :root .location .hours { width: 100%; text-align: left; }
+  :root .hours-row { padding-block: 0.4375rem; font-size: 0.9375rem; }
+
+  /* ---------------- Footer: compact, centrat ---------------- */
+  :root .footer { padding-top: 2.5rem; text-align: center; }
+  :root .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.75rem 1rem; }
+  :root .footer-brand { grid-column: 1 / -1; justify-items: center; gap: 1rem; }
+  :root .footer-brand .lockup { width: 8.5rem; }
+  :root .footer-social { justify-content: center; }
+  :root .footer-title { margin-bottom: 0.5rem; }
+  :root .footer address,
+  :root .footer-list { font-size: 0.8125rem; line-height: 1.7; }
+  :root .footer-grid > nav { grid-column: 1 / -1; }
+  :root .footer-grid > nav .footer-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1.25rem; }
+  :root .footer-bottom { margin-top: 2rem; padding-block: 1.25rem; font-size: 0.75rem; text-align: center; }
+
+  /* ---------------- Subpagini (Galerie, Servicii, Contact, 404) ---------------- */
+  :root .crumbs ol { justify-content: center; }
+  :root .page-head { display: grid; justify-items: center; padding-block: 2rem 0.5rem; text-align: center; }
+  :root .page-head h1 { font-size: 2.5rem; }
+  :root .page-head .btn-row { width: 100%; }
+  :root .gallery-grid { gap: 1.75rem; }
+  :root .gallery-grid figure { gap: 0.625rem; }
+  :root .gallery-grid figcaption { justify-content: center; text-align: center; }
+  :root .gallery picture { border-radius: calc(var(--radius) * 3); }
+  :root .service-group { padding-block: 1.75rem; }
+  :root .service-group h2 { text-align: center; font-size: 1.75rem; }
+  :root .cta-inner h2 { font-size: 1.75rem; }
+}
+
+@keyframes m-tab-in {
+  from { opacity: 0; transform: translateY(0.5rem); }
+}

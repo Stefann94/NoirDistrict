@@ -142,7 +142,7 @@ function works() {
       duration: 1.4,
       ease: 'expo.inOut',
       stagger: 0.1,
-      scrollTrigger: { trigger: track, start: 'clamp(top 85%)', once: true },
+      scrollTrigger: { trigger: track, start: 'top 85%', once: true },
     },
   );
 
@@ -165,7 +165,7 @@ function board() {
   const rows = $$('.service', el);
   const dots = $$('.service-dots', el);
   const prices = $$('.service-price', el);
-  const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'clamp(top 78%)', once: true } });
+  const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 78%', once: true } });
   tl.fromTo(el, { '--cover': 1 }, { '--cover': 0, duration: 1.4, ease: 'expo.inOut' })
     .fromTo($$('.frame-corner', el), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, stagger: 0.08, ease: 'back.out(3)' }, 0.9)
     .fromTo($$('.board-head > *, .board-group-title', el), { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.07, ease: 'expo.out' }, 0.7)

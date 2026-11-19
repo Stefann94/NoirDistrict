@@ -6,7 +6,9 @@
 // Starea inițială (ascunsă) e în motion.css, ca să nu existe nicio clipire înainte de JavaScript.
 import { gsap, SplitText } from './core';
 
-const START = 'clamp(top 88%)';
+// Fără clamp(): la elementele vizibile deja la încărcare, clamp mută pragul exact la 0 și animația
+// n-ar porni până la primul pixel derulat (titlurile subpaginilor ar rămâne ascunse).
+const START = 'top 92%';
 
 export function reveals(scope: ParentNode = document) {
   scope.querySelectorAll<HTMLElement>('[data-split]').forEach((el) => {

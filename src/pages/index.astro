@@ -115,7 +115,10 @@ const total = String(galleryImages.length).padStart(2, '0');
         </li>
       </ul>
       {/* Telefon: bara de progres a caruselului (completată de scripts/home-mobile.ts). */}
-      <div class="works-progress" aria-hidden="true"><span></span></div>
+      <div class="works-progress" aria-hidden="true">
+        <span class="works-progress-bar"><span></span></span>
+        <span class="works-progress-count"><b>01</b> / {total}</span>
+      </div>
     </div>
   </section>
 

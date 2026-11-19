@@ -80,8 +80,8 @@ groupsBox?.addEventListener('touchend', (e) => {
 /* ---------------- Galeria: contor și bară de progres ---------------- */
 
 const track = document.querySelector<HTMLElement>('.works-track');
-const bar = document.querySelector<HTMLElement>('.works-progress span');
-const count = document.querySelector<HTMLElement>('.works-count b');
+const bar = document.querySelector<HTMLElement>('.works-progress-bar span');
+const count = document.querySelector<HTMLElement>('.works-progress-count b');
 const photos = track ? track.querySelectorAll('.work:not(.work-more)').length : 0;
 let raf = 0;
 
@@ -90,8 +90,10 @@ function updateProgress() {
   if (!track || !phone.matches) return;
   const max = track.scrollWidth - track.clientWidth;
   const p = max > 0 ? track.scrollLeft / max : 0;
-  if (bar) bar.style.transform = `scaleX(${Math.max(p, 0.04)})`;
-  if (count) count.textContent = String(Math.min(photos, Math.round(p * (photos - 1)) + 1)).padStart(2, '0');
+  // Bara arată poza curentă din total (1/6 … 6/6), nu doar cât ai derulat.
+  const current = Math.min(photos, Math.round(p * (photos - 1)) + 1);
+  if (bar) bar.style.transform = `scaleX(${current / photos})`;
+  if (count) count.textContent = String(current).padStart(2, '0');
 }
 track?.addEventListener('scroll', () => {
   if (!raf) raf = requestAnimationFrame(updateProgress);
