@@ -32,14 +32,14 @@ export const business = {
   kind: 'Frizerie',
   owner: 'Orlando',
   description:
-    'Frizerie pentru bărbați în Piatra Neamț. Tunsori clasice și moderne, skin fade, aranjat de barbă și bărbierit tradițional cu prosop cald.',
+    'Frizerie pentru bărbați în Piatra Neamț. Tunsori clasice și moderne, skin fade, păr lung și aranjat de barbă.',
 
-  phone: '+40700000000', // PLACEHOLDER, format E.164
-  phoneDisplay: '0700 000 000', // PLACEHOLDER
+  phone: '+40793301282', // format E.164
+  phoneDisplay: '0793 301 282',
   email: '', // opțional
 
   address: {
-    street: 'Strada Mihai Viteazu nr. 6, bl. 12', // de pe firmă
+    street: 'Strada Mihai Viteazul nr. 6, bl. I2, sc. C',
     city: 'Piatra Neamț',
     region: 'Neamț',
     postalCode: '', // PLACEHOLDER: codul poștal exact (opțional)
@@ -51,11 +51,11 @@ export const business = {
   // Link-ul direct din Google Business Profile („Distribuie”). Dacă e gol, se generează o căutare.
   mapsUrl: '',
 
-  priceRange: '40–120 RON',
+  priceRange: '30–110 RON',
   currency: 'RON',
 
   // Numărul pe care ajung cererile de programare din formular (fără +, fără spații).
-  whatsapp: '40700000000', // PLACEHOLDER
+  whatsapp: '40793301282',
   // Intervalul dintre sloturile de programare, în minute.
   slotMinutes: 30,
   // Câte zile în avans se pot face programări.
@@ -69,36 +69,35 @@ export const business = {
     tiktok: '',
   },
 
-  // PLACEHOLDER: programul real
+  // Programul (de la Orlando). Duminica: închis.
   hours: [
-    { days: ['Mo', 'Tu', 'We', 'Th', 'Fr'], opens: '09:00', closes: '20:00' },
-    { days: ['Sa'], opens: '09:00', closes: '16:00' },
+    { days: ['Mo', 'Tu', 'We', 'Th', 'Fr'], opens: '10:00', closes: '18:00' },
+    { days: ['Sa'], opens: '10:00', closes: '16:00' },
   ] satisfies OpeningHours[],
 } as const;
 
-// PLACEHOLDER: lista și prețurile reale
+// Prețurile de la Orlando. Duratele (din ele se calculează orele libere) sunt estimate: de confirmat.
 export const serviceGroups: ServiceGroup[] = [
   {
     title: 'Tuns',
     services: [
-      { name: 'Tuns clasic', description: 'Foarfecă și mașină, spălat și styling.', price: 60, duration: 40, featured: true },
-      { name: 'Skin fade', description: 'Degradeu până la piele, contur precis.', price: 70, duration: 45, featured: true },
-      { name: 'Tuns copii', description: 'Pentru copii sub 12 ani.', price: 45, duration: 30 },
-      { name: 'Tuns cu mașina', description: 'O singură lungime, contur inclus.', price: 40, duration: 20 },
+      { name: 'Tuns clasic', description: 'Foarfecă și mașină, contur curat.', price: 40, duration: 40, featured: true },
+      { name: 'Skin fade', description: 'Degradeu până la piele, contur precis.', price: 60, duration: 45, featured: true },
+      { name: 'Tuns păr lung', description: 'Tunsoare cu foarfeca, păstrând lungimea.', price: 80, duration: 60 },
     ],
   },
   {
     title: 'Barbă',
     services: [
-      { name: 'Aranjat barbă', description: 'Formă, contur cu briciul, ulei de barbă.', price: 40, duration: 25, featured: true },
-      { name: 'Bărbierit tradițional', description: 'Prosop cald, brici, balsam după ras.', price: 50, duration: 30 },
+      { name: 'Aranjat barbă', description: 'Formă, contur și ulei de barbă.', price: 30, duration: 30, featured: true },
     ],
   },
   {
     title: 'Pachete',
     services: [
-      { name: 'Tuns + barbă', description: 'Pachetul complet Noir District.', price: 100, duration: 70, featured: true },
-      { name: 'Tuns + bărbierit', description: 'Tunsoare la alegere și ras cu prosop cald.', price: 110, duration: 75 },
+      { name: 'Tuns + barbă', description: 'Tunsoare la alegere și aranjat de barbă.', price: 90, duration: 70, featured: true },
+      { name: 'Tuns + spălat', description: 'Tunsoare, spălat și aranjat (styling).', price: 80, duration: 60 },
+      { name: 'Pachet complet', description: 'Tuns, barbă, spălat și aranjat.', price: 110, duration: 90 },
     ],
   },
 ];

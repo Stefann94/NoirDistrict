@@ -9,8 +9,8 @@ const captions: Record<string, { title: string; alt: string }> = {
     alt: 'Tunsoare cu cărare tăiată și skin fade, părul pieptănat lateral',
   },
   'textured-mid-fade': {
-    title: 'Textured crop și mid fade',
-    alt: 'Păr texturat pe creștet cu mid fade până la piele',
+    title: 'Quiff și mid fade',
+    alt: 'Quiff cu volum pe creștet și mid fade până la piele',
   },
   'low-taper-texturat': {
     title: 'Low taper, păr lung texturat',

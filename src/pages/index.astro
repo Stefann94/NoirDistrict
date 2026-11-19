@@ -16,14 +16,14 @@ import '../styles/booking.css';
 
 const title = 'Noir District – Frizerie pentru bărbați în Piatra Neamț';
 const description =
-  'Noir District by Orlando, frizerie pentru bărbați în Piatra Neamț, pe Strada Mihai Viteazu: skin fade, taper, aranjat de barbă și bărbierit cu prosop cald. Vezi lucrările și prețurile și programează-te online.';
+  'Noir District by Orlando, frizerie pentru bărbați în Piatra Neamț, pe Strada Mihai Viteazul: skin fade, taper, păr lung și aranjat de barbă. Vezi lucrările și prețurile și programează-te online.';
 
 // Portretul din hero privește spre stânga, spre text. Versiune pregătită special pentru ecran mare:
 // alb-negru, curățată de compresia WhatsApp, mărită de 2× (src/assets/hero/).
 const heroPhoto = { ...galleryBySlug('carare-skin-fade'), src: heroImage };
 const openHours = hoursSummary[0];
 
-const ticker = ['Skin fade', 'Taper fade', 'Cărare tăiată', 'Textured crop', 'Aranjat barbă', 'Contur cu briciul', 'Prosop cald'];
+const ticker = ['Skin fade', 'Taper fade', 'Cărare tăiată', 'Textured crop', 'Aranjat barbă', 'Contur precis', 'Păr lung'];
 
 const total = String(galleryImages.length).padStart(2, '0');
 ---
@@ -148,7 +148,7 @@ const total = String(galleryImages.length).padStart(2, '0');
             </section>
           ))}
         </div>
-        <p class="board-note">Prețurile includ spălat și styling. Durata e orientativă.</p>
+        <p class="board-note">Durata e orientativă.</p>
       </Frame>
     </div>
   </section>
@@ -171,7 +171,7 @@ const total = String(galleryImages.length).padStart(2, '0');
       <div class="section-head">
         <div>
           <p class="eyebrow" data-reveal>Locație și program</p>
-          <h2 id="locatie-title" data-split>Te așteptăm pe Mihai Viteazu</h2>
+          <h2 id="locatie-title" data-split>Te așteptăm pe Mihai Viteazul</h2>
         </div>
       </div>
       <Location headingLevel="h3" stagger />

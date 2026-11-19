@@ -1,4 +1,4 @@
-// „Deschis acum · până la 20:00” / „Închis acum · deschidem mâine la 09:00”, după ora din România,
+// „Deschis acum · până la 18:00” / „Închis acum · deschidem mâine la 10:00”, după ora din România,
 // plus ziua de azi evidențiată în tabelul de program. Se actualizează în fiecare minut.
 import type { DayCode, OpeningHours } from '../data/business';
 
