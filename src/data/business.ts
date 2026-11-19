@@ -119,6 +119,8 @@ export const wazeHref = business.geo
 
 export const telHref = `tel:${business.phone}`;
 
+export const whatsappHref = `https://wa.me/${business.whatsapp}`;
+
 export const bookingHref = business.bookingUrl || '/#programare';
 
 export const socialLinks = Object.entries(business.social)

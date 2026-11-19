@@ -119,6 +119,102 @@ export function initBooking(form: HTMLFormElement) {
     }
   });
 
+  /* ---- Telefon: asistent pas cu pas (1 Serviciul → 2 Ziua → 3 Ora → 4 Datele tale) ---- */
+
+  const wizard = (() => {
+    const phone = matchMedia('(max-width: 47.99rem)');
+    const head = form.querySelector<HTMLElement>('[data-wizard]');
+    const nav = form.querySelector<HTMLElement>('[data-wizard-nav]');
+    const steps = [...form.querySelectorAll<HTMLFieldSetElement>('.booking-step')];
+    const titles = ['Serviciul', 'Ziua', 'Ora', 'Datele tale'];
+    const back = nav?.querySelector<HTMLButtonElement>('[data-wizard-back]');
+    const next = nav?.querySelector<HTMLButtonElement>('[data-wizard-next]');
+    const picks = head?.querySelector<HTMLElement>('[data-wizard-picks]');
+    let step = 1;
+
+    const on = () => phone.matches && !!head && !!nav;
+    const chosen = (n: number) =>
+      n === 1 ? !!selectedService() : !!form.querySelector(`input[name="${n === 2 ? 'day' : 'slot'}"]:checked`);
+    /** Primul pas încă necompletat (nu poți sări peste el). */
+    const firstMissing = () => [1, 2, 3].find((n) => !chosen(n)) ?? 4;
+
+    function renderPicks() {
+      if (!picks) return;
+      const service = selectedService();
+      const day = form.querySelector<HTMLInputElement>('input[name="day"]:checked');
+      const slot = form.querySelector<HTMLInputElement>('input[name="slot"]:checked');
+      const items: [number, string | null][] = [
+        [1, service ? service.value : null],
+        [2, day ? longDate.format(fromKey(day.value)) : null],
+        [3, slot ? `ora ${slot.value}` : null],
+      ];
+      picks.replaceChildren(
+        ...items
+          .filter(([, text]) => text)
+          .map(([n, text]) => {
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = text; // text simplu, niciodată HTML
+            b.setAttribute('aria-label', `Schimbă: ${text}`);
+            b.addEventListener('click', () => go(n));
+            li.append(b);
+            return li;
+          }),
+      );
+    }
+
+    function go(n: number, scroll = true) {
+      if (!on()) return;
+      step = Math.max(1, Math.min(n, firstMissing(), 4));
+      form.dataset.step = String(step);
+      steps.forEach((s, i) => s.classList.toggle('is-current', i === step - 1));
+      head!.querySelector('[data-wizard-count]')!.textContent = `Pasul ${step} din 4`;
+      head!.querySelector('[data-wizard-title]')!.textContent = titles[step - 1];
+      head!.querySelector<HTMLElement>('[data-wizard-bar]')!.style.transform = `scaleX(${step / 4})`;
+      if (back) back.hidden = step === 1;
+      if (next) {
+        next.hidden = step === 4;
+        next.disabled = !chosen(step);
+      }
+      renderPicks();
+      // Începutul formularului rămâne vizibil sub header când schimbi pasul.
+      if (scroll) {
+        const top = form.getBoundingClientRect().top;
+        const header = document.querySelector<HTMLElement>('.header')?.offsetHeight ?? 0;
+        if (top < header || top > innerHeight * 0.4) scrollBy({ top: top - header - 12, behavior: 'smooth' });
+      }
+    }
+
+    function mode() {
+      const active = on();
+      form.classList.toggle('is-wizard', active);
+      if (head) head.hidden = !active;
+      if (nav) nav.hidden = !active;
+      if (active) go(step, false);
+      else {
+        delete form.dataset.step;
+        steps.forEach((s) => s.classList.remove('is-current'));
+      }
+    }
+
+    back?.addEventListener('click', () => go(step - 1));
+    next?.addEventListener('click', () => go(step + 1));
+    // Alegerea trece singură la pasul următor (după o clipă, ca să se vadă selecția).
+    form.addEventListener('change', (e) => {
+      if (!on()) return;
+      const name = (e.target as HTMLInputElement).name;
+      const n = name === 'service' ? 1 : name === 'day' ? 2 : name === 'slot' ? 3 : 0;
+      if (!n) return;
+      if (next) next.disabled = !chosen(step);
+      renderPicks();
+      if (n === step) setTimeout(() => go(step + 1), 280);
+    });
+    phone.addEventListener('change', mode);
+    mode();
+    return { go, on };
+  })();
+
   /* ---- Validarea numelui și a telefonului ---- */
 
   const fields = {
@@ -188,8 +284,10 @@ export function initBooking(form: HTMLFormElement) {
     const missing = !service ? 'serviciul' : !day ? 'ziua' : !slot ? 'ora' : null;
     if (missing) {
       errorEl.textContent = `Mai alege ${missing}.`;
-      (missing === 'serviciul' ? form.querySelector('input[name="service"]') : missing === 'ziua' ? daysEl : slotsEl)
-        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (wizard.on()) wizard.go(missing === 'serviciul' ? 1 : missing === 'ziua' ? 2 : 3);
+      else
+        (missing === 'serviciul' ? form.querySelector('input[name="service"]') : missing === 'ziua' ? daysEl : slotsEl)
+          ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
     if (!name || !phone) {
@@ -201,21 +299,102 @@ export function initBooking(form: HTMLFormElement) {
     fields.name.input.value = name;
     fields.phone.input.value = phone;
     lastSent = Date.now();
+    send({ service: service!.value, price: service!.dataset.price ?? '', day: day!, slot: slot!, name, phone });
+  });
+
+  /* ---- Trimiterea către server (care o dă mai departe pe WhatsApp-ul lui Orlando) ---- */
+
+  const done = form.parentElement?.querySelector<HTMLElement>('[data-booking-done]');
+  const fallback = form.querySelector<HTMLElement>('[data-fallback]');
+  const submitLabel = submit?.textContent ?? '';
+
+  /** Link de rezervă: cererea gata scrisă, trimisă de client din WhatsApp-ul lui. */
+  const whatsappLink = (r: Request) =>
+    `https://wa.me/${encodeURIComponent(config.whatsapp)}?text=${encodeURIComponent(
+      [
+        'Bună ziua! Aș dori o programare la Noir District:',
+        `• Serviciu: ${r.service} (${r.price} lei)`,
+        `• Ziua: ${longDate.format(fromKey(r.day))}`,
+        `• Ora: ${r.slot}`,
+        `• Nume: ${r.name}`,
+        `• Telefon: ${r.phone}`,
+      ].join('\n'),
+    )}`;
+
+  type Request = { service: string; price: string; day: string; slot: string; name: string; phone: string };
+
+  async function send(r: Request) {
     if (submit) {
       submit.disabled = true;
-      setTimeout(() => (submit.disabled = false), 5000);
+      submit.textContent = 'Se trimite…';
     }
+    if (fallback) fallback.hidden = true;
+    try {
+      const res = await fetch('/api/programare/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ service: r.service, day: r.day, slot: r.slot, name: r.name, phone: r.phone, website: trap?.value ?? '' }),
+      });
+      const answer = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; field?: string };
+      if (res.ok && answer.ok) return success(r);
 
-    // Mesajul e text simplu, codificat în link: nu poate rula nimic, nici aici, nici la Orlando.
-    const message = [
-      'Bună ziua! Aș dori o programare la Noir District:',
-      `• Serviciu: ${service!.value} (${service!.dataset.price} lei)`,
-      `• Ziua: ${longDate.format(fromKey(day!))}`,
-      `• Ora: ${slot}`,
-      `• Nume: ${name}`,
-      `• Telefon: ${phone}`,
-    ].join('\n');
-    location.href = `https://wa.me/${encodeURIComponent(config.whatsapp)}?text=${encodeURIComponent(message)}`;
+      // Serverul a respins o valoare anume: arătăm mesajul lângă câmpul ei.
+      if (answer.field === 'name' || answer.field === 'phone') {
+        const input = fields[answer.field].input;
+        document.getElementById(input.getAttribute('aria-describedby')!)!.textContent = answer.error ?? '';
+        input.setAttribute('aria-invalid', 'true');
+        input.focus();
+        errorEl.textContent = 'Verifică datele de mai sus.';
+      } else if (answer.field) {
+        errorEl.textContent = answer.error ?? 'Alege din nou ziua și ora.';
+        renderDays();
+        renderSlots();
+        wizard.go(answer.field === 'service' ? 1 : answer.field === 'day' ? 2 : 3);
+      } else {
+        throw new Error(answer.error ?? `HTTP ${res.status}`);
+      }
+    } catch (err) {
+      // Serverul nu e disponibil / nu a putut trimite: clientul nu rămâne blocat.
+      errorEl.textContent = `${err instanceof Error && !err.message.startsWith('HTTP') && !/fetch/i.test(err.message) ? err.message + ' ' : ''}Poți trimite cererea direct pe WhatsApp sau ne poți suna.`;
+      if (fallback) {
+        fallback.hidden = false;
+        fallback.querySelector<HTMLAnchorElement>('[data-fallback-whatsapp]')!.href = whatsappLink(r);
+      }
+    } finally {
+      if (submit) {
+        submit.textContent = submitLabel;
+        setTimeout(() => (submit.disabled = false), 1500);
+      }
+    }
+  }
+
+  function success(r: Request) {
+    if (!done) return;
+    // Rezumatul se scrie doar ca text (textContent), niciodată ca HTML.
+    const set = (key: string, value: string) => {
+      const el = done.querySelector<HTMLElement>(`[data-done="${key}"]`);
+      if (el) el.textContent = value;
+    };
+    set('service', `${r.service} · ${r.price} lei`);
+    set('when', `${longDate.format(fromKey(r.day))}, ora ${r.slot}`);
+    set('name', r.name);
+    set('phone', r.phone);
+    form.hidden = true;
+    done.hidden = false;
+    done.focus();
+    done.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  done?.querySelector('[data-done-again]')?.addEventListener('click', () => {
+    form.reset();
+    Object.values(fields).forEach(({ input }) => input.removeAttribute('aria-invalid'));
+    form.querySelectorAll<HTMLElement>('.field-error').forEach((el) => (el.textContent = ''));
+    touched.clear();
+    renderDays();
+    slotsEl.innerHTML = '<p class="booking-hint">Alege întâi ziua.</p>';
+    done.hidden = true;
+    form.hidden = false;
+    wizard.go(1);
   });
 
   renderDays();

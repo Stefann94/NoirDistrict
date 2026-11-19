@@ -132,6 +132,46 @@
 
 .booking-external { justify-items: start; }
 
+/* Rezervă (WhatsApp / telefon), când serverul nu poate trimite */
+.booking-fallback { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.booking-fallback[hidden] { display: none; }
+.booking-fallback .btn { flex: 1 1 8rem; min-height: 2.75rem; }
+.booking-submit:disabled { opacity: 0.6; cursor: progress; }
+
+/* Confirmarea, după trimitere */
+.booking-done {
+  justify-items: center;
+  gap: 1rem;
+  padding-block: 2.5rem;
+  text-align: center;
+}
+/* `hidden` trebuie să bată `display: grid` (formularul ascuns după trimitere, confirmarea înainte). */
+.booking[hidden],
+.booking-done[hidden] { display: none; }
+/* Confirmarea e o singură coloană, centrată, pe orice ecran (nu preia grila de 3 coloane a formularului). */
+.booking.booking-done { grid-template-columns: 1fr; grid-template-rows: none; }
+.booking-done:focus { outline: none; }
+.booking-done h3 { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem); }
+.booking-done-lead { max-width: 30rem; color: var(--muted); }
+.booking-done-mark {
+  width: 1rem;
+  height: 1rem;
+  background: var(--text);
+  transform: rotate(45deg);
+}
+.booking-done-summary {
+  display: grid;
+  gap: 0.5rem 2rem;
+  width: min(100%, 34rem);
+  margin-block: 0.5rem;
+  padding-block: 1rem;
+  border-block: 1px solid var(--line);
+  text-align: left;
+}
+.booking-done-summary div { display: flex; justify-content: space-between; gap: 1rem; }
+.booking-done-summary dt { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.booking-done-summary dd { font-family: var(--font-display); text-align: right; }
+
 /* Tabletă: servicii pe 4 coloane, nume + telefon alăturate */
 @media (min-width: 48rem) {
   .booking { padding: 1.5rem; gap: 1.5rem 2rem; }
@@ -144,7 +184,7 @@
   .booking {
     grid-template-columns: 1.15fr 1.1fr 0.9fr;
     /* Ultimul rând preia spațiul rămas: în coloana a 3-a, butonul vine imediat sub câmpuri. */
-    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-rows: auto auto auto auto auto 1fr;
     gap: 1.25rem 2.5rem;
     align-items: start;
     padding: 2rem;
@@ -158,6 +198,96 @@
   .booking-step:nth-of-type(3) { grid-column: 2; grid-row: 2 / -1; }
   .booking-step:nth-of-type(4) { grid-column: 3; grid-row: 1; }
   .booking-error { grid-column: 3; grid-row: 2; }
-  .booking-submit { grid-column: 3; grid-row: 3; }
-  .booking-note { grid-column: 3; grid-row: 4; }
+  .booking-fallback { grid-column: 3; grid-row: 3; }
+  .booking-submit { grid-column: 3; grid-row: 4; }
+  .booking-note { grid-column: 3; grid-row: 5; }
+}
+
+/* ======================================================================
+   TELEFON — asistent pas cu pas (clasa .is-wizard o pune scripts/booking.ts)
+   ====================================================================== */
+.wizard[hidden],
+.wizard-nav[hidden],
+.wizard-nav [hidden] { display: none; }
+
+.booking.is-wizard { gap: 1.125rem; }
+.booking.is-wizard .booking-step:not(.is-current) { display: none; }
+.booking.is-wizard .booking-step legend { display: none; }
+.booking.is-wizard .booking-step.is-current { animation: step-in 0.35s ease-out; }
+@keyframes step-in {
+  from { opacity: 0; transform: translateX(0.75rem); }
+}
+/* Trimiterea apare doar la ultimul pas */
+.booking.is-wizard:not([data-step='4']) :is(.booking-fallback, .booking-submit, .booking-note) { display: none; }
+
+.wizard { display: grid; gap: 0.75rem; }
+.wizard-top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.wizard-count {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wizard-title { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; }
+.wizard-bar { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.wizard-bar span {
+  display: block;
+  height: 100%;
+  background: var(--text);
+  transform: scaleX(0.25);
+  transform-origin: 0 50%;
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* Ce ai ales: pastile care te duc înapoi la pasul respectiv */
+.wizard-picks { display: flex; flex-wrap: wrap; gap: 0.375rem; padding: 0; list-style: none; }
+.wizard-picks:empty { display: none; }
+.wizard-picks button {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.wizard-picks button::after { content: ' ✎'; color: var(--muted); }
+
+/* Pașii, mai aerisiți: o listă de servicii, grile de zile și ore */
+.booking.is-wizard .choices { grid-template-columns: 1fr; gap: 0.5rem; }
+.booking.is-wizard .choice {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+}
+.booking.is-wizard .choice-name { font-size: 1rem; }
+.booking.is-wizard .choice-meta { font-size: 0.8125rem; text-align: right; }
+.booking.is-wizard .chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.booking.is-wizard .chip { min-width: 0; min-height: 3.25rem; }
+.booking.is-wizard .chip-top { font-size: 0.9375rem; }
+
+.wizard-nav { display: grid; grid-template-columns: 1fr 2fr; gap: 0.5rem; }
+.wizard-nav .btn { min-height: 3rem; }
+.wizard-nav [data-wizard-back][hidden] + [data-wizard-next] { grid-column: 1 / -1; }
+.wizard-nav .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* La ultimul pas, „Înapoi” devine un link discret (butonul principal e „Trimite cererea”). */
+.wizard-nav:has([data-wizard-next][hidden]) { grid-template-columns: 1fr; }
+.wizard-nav:has([data-wizard-next][hidden]) [data-wizard-back] {
+  justify-self: start;
+  min-height: 0;
+  padding: 0.25rem 0;
+  border: 0;
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  color: var(--muted);
 }

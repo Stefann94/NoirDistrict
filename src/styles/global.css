@@ -185,6 +185,8 @@ p { text-wrap: pretty; }
 /* ---- Butoane ---- */
 
 .btn {
+  font-family: inherit;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +204,8 @@ p { text-wrap: pretty; }
 }
 .btn-primary { background: var(--accent); color: var(--accent-ink); }
 .btn-primary:hover { background: transparent; color: var(--accent); }
-.btn-ghost { color: var(--text); border-color: var(--line-strong); }
+/* background explicit: și pe <button> (care are altfel fundalul gri implicit al browserului) */
+.btn-ghost { color: var(--text); border-color: var(--line-strong); background: transparent; }
 .btn-ghost:hover { border-color: var(--text); }
 
 .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }

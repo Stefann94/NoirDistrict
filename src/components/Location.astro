@@ -1,9 +1,10 @@
 ---
 // Fără iframe Google Maps: un embed costă ~1 MB de JavaScript și setează cookie-uri.
 // Link-urile deschid direct aplicația de navigație pe telefon.
+// Pe telefon: starea „deschis acum” + patru butoane mari (Sună, WhatsApp, Maps, Waze).
 import Hours from './Hours.astro';
 import Icon from './Icon.astro';
-import { business, fullAddress, mapsHref, wazeHref, telHref } from '../data/business';
+import { business, fullAddress, mapsHref, wazeHref, telHref, whatsappHref } from '../data/business';
 
 interface Props {
   headingLevel?: 'h2' | 'h3';
@@ -17,6 +18,8 @@ const { headingLevel: H = 'h2', stagger = false } = Astro.props;
 <div class="location" data-stagger={stagger ? '' : undefined}>
   <div class="card">
     <H class="card-title">Unde ne găsești</H>
+    {/* Completat în browser, după ora din România. */}
+    <p class="open-status" data-open-status data-hours={JSON.stringify(business.hours)} hidden></p>
     <address>
       <p class="location-line"><Icon name="pin" /> <span>{fullAddress}</span></p>
       <p class="location-line">
@@ -26,10 +29,16 @@ const { headingLevel: H = 'h2', stagger = false } = Astro.props;
         <p class="location-line"><a href={`mailto:${business.email}`}>{business.email}</a></p>
       )}
     </address>
-    <div class="btn-row">
+    <div class="btn-row location-buttons">
       <a class="btn btn-primary" href={mapsHref} target="_blank" rel="noopener">Google Maps</a>
       <a class="btn btn-ghost" href={wazeHref} target="_blank" rel="noopener">Waze</a>
     </div>
+    <ul class="location-actions">
+      <li><a href={telHref}><Icon name="phone" size={22} /><span>Sună</span></a></li>
+      <li><a href={whatsappHref} target="_blank" rel="noopener"><Icon name="whatsapp" size={22} /><span>WhatsApp</span></a></li>
+      <li><a href={mapsHref} target="_blank" rel="noopener"><Icon name="pin" size={22} /><span>Google Maps</span></a></li>
+      <li><a href={wazeHref} target="_blank" rel="noopener"><Icon name="navigate" size={22} /><span>Waze</span></a></li>
+    </ul>
   </div>
 
   <div class="card">
@@ -37,3 +46,8 @@ const { headingLevel: H = 'h2', stagger = false } = Astro.props;
     <Hours />
   </div>
 </div>
+
+<script>
+  import { openStatus } from '../scripts/open-status';
+  openStatus();
+</script>

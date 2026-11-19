@@ -67,6 +67,28 @@ Formularul (serviciu → zi → oră → nume/telefon) generează sloturile din 
 - Fără Google Maps embed (~1 MB JS + cookie-uri): butoanele deschid direct Google Maps/Waze.
 - Găzduit pe Vercel (se publică automat la fiecare push pe `main`). `vercel.json`: cache permanent pentru `/_astro/*`, headere de securitate și slash la final de URL.
 
+## Programări (mesaj automat pe WhatsApp-ul lui Orlando)
+
+Formularul trimite cererea la `src/pages/api/programare.ts` (funcție Vercel). Serverul o verifică din nou
+complet (serviciu din listă, zi și oră în program, nume și telefon reale, limite de cereri, capcană pentru
+roboți) și o trimite pe WhatsApp-ul lui Orlando prin [CallMeBot](https://www.callmebot.com/blog/free-api-whatsapp-messages/).
+Dacă trimiterea nu merge, clientul primește butoane de rezervă: WhatsApp și telefon.
+
+**Activare (o singură dată, de pe telefonul lui Orlando):**
+1. Adaugă în agendă numărul **+34 644 51 95 23** (orice nume).
+2. Trimite-i pe WhatsApp mesajul: `I allow callmebot to send me messages`
+3. Răspunsul conține cheia: „API Activated for your phone number. Your APIKEY is …”.
+   Dacă nu vine în 2 minute, se reîncearcă după 24 de ore.
+
+**În Vercel → Settings → Environment Variables** (Production):
+| Nume | Valoare |
+| --- | --- |
+| `CALLMEBOT_PHONE` | numărul lui Orlando cu prefix, ex. `+40745123456` |
+| `CALLMEBOT_APIKEY` | cheia primită |
+
+După salvare, un nou deploy (Deployments → Redeploy). Fără chei: local trimiterea e simulată în consolă,
+online formularul arată butoanele de rezervă.
+
 ## Înainte de lansare
 
 1. Înlocuiește toate valorile `PLACEHOLDER` din `src/data/business.ts`: telefon, WhatsApp, program, prețuri, coordonatele exacte (`geo`).

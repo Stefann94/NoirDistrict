@@ -66,7 +66,6 @@ const total = String(galleryImages.length).padStart(2, '0');
 
     <div class="hero-foot">
       <a href={mapsHref} target="_blank" rel="noopener"><Icon name="pin" size={15} /> {business.address.street}</a>
-      <span class="hero-scroll" aria-hidden="true"></span>
       <span><Icon name="clock" size={15} /> {openHours.days} {openHours.hours}</span>
     </div>
   </section>
@@ -97,7 +96,7 @@ const total = String(galleryImages.length).padStart(2, '0');
                 alt={img.alt}
                 formats={['avif', 'webp']}
                 widths={[360, 540, 720, 960]}
-                sizes="(min-width: 64rem) 50svh, (min-width: 48rem) 42vw, 78vw"
+                sizes="(min-width: 64rem) 50svh, (min-width: 48rem) 42vw, 86vw"
                 loading="lazy"
                 decoding="async"
               />
@@ -115,6 +114,8 @@ const total = String(galleryImages.length).padStart(2, '0');
           </a>
         </li>
       </ul>
+      {/* Telefon: bara de progres a caruselului (completată de scripts/home-mobile.ts). */}
+      <div class="works-progress" aria-hidden="true"><span></span></div>
     </div>
   </section>
 
@@ -126,9 +127,17 @@ const total = String(galleryImages.length).padStart(2, '0');
           <h2 id="preturi-title">Prețuri</h2>
           <p class="ornament" aria-hidden="true"><span></span></p>
         </header>
+        {/* Telefon: câte o categorie odată (file). Fără JavaScript se văd toate. */}
+        <div class="board-tabs" role="tablist" aria-label="Categorii de servicii" hidden>
+          {serviceGroups.map((group, i) => (
+            <button type="button" role="tab" class="board-tab" id={`fila-${i}`} aria-controls={`grupa-${i}`} aria-selected={i === 0 ? 'true' : 'false'}>
+              {group.title}
+            </button>
+          ))}
+        </div>
         <div class="board-groups">
           {serviceGroups.map((group, i) => (
-            <section class="board-group" aria-labelledby={`grup-${i}`}>
+            <section class="board-group" id={`grupa-${i}`} aria-labelledby={`grup-${i}`}>
               <h3 id={`grup-${i}`} class="board-group-title">{group.title}</h3>
               <ServiceList services={group.services} headingLevel="h4" />
             </section>
@@ -166,6 +175,7 @@ const total = String(galleryImages.length).padStart(2, '0');
 </Base>
 
 <script>
-  // Tabla de prețuri încape pe un ecran (independent de animații).
+  // Tabla de prețuri încape pe un ecran (independent de animații); pe telefon: file și progresul galeriei.
   import '../scripts/fit';
+  import '../scripts/home-mobile';
 </script>

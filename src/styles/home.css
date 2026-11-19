@@ -97,7 +97,7 @@
 }
 .hero-ctas { width: 100%; margin-top: 0.5rem; }
 
-/* Banda de jos: adresa, indicatorul de derulare, programul */
+/* Banda de jos: adresa și programul */
 .hero-foot {
   position: absolute;
   inset: auto 1.75rem 1.5rem;
@@ -113,22 +113,8 @@
 }
 .hero-foot a, .hero-foot span { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; }
 .hero-foot a:hover { color: var(--text); }
-.hero-scroll {
-  width: 1px;
-  height: 2.5rem;
-  background: linear-gradient(var(--text), transparent);
-  transform-origin: top;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero-scroll { animation: hero-drip 2.4s ease-in-out infinite; }
-}
-@keyframes hero-drip {
-  0% { transform: scaleY(0); }
-  50% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
-}
 @media (max-width: 47.99rem) {
-  .hero-foot .hero-scroll, .hero-foot span { display: none; }
+  .hero-foot span { display: none; }
   .hero-foot { justify-content: center; }
 }
 
@@ -386,4 +372,102 @@
   }
   .booking-head .eyebrow { grid-column: 1 / -1; }
   .booking-head .lead { justify-self: end; text-align: right; }
+}
+
+/* ======================================================================
+   TELEFON — fiecare secțiune adaptată (sub 768 px). Desktopul nu e afectat.
+   ====================================================================== */
+@media (max-width: 47.99rem) {
+  /* ---- Hero: butoanele alăturate, ca să rămână loc pentru poză ---- */
+  .hero-ctas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .hero-ctas .btn {
+    min-height: 2.875rem;
+    padding-inline: 0.75rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* ---- Lucrări: carduri mai late, titlul peste poză, bară de progres ---- */
+  .works { padding-block: 3rem 2.5rem; }
+  .works-head {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    margin-bottom: 1.25rem;
+  }
+  .works-head h2 { font-size: 2rem; }
+  .works-count { font-size: 1.125rem; }
+  .work { width: 86%; }
+  .work figure { position: relative; }
+  .work picture { border-radius: calc(var(--radius) * 2); }
+  .work figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: 3rem 1rem 1rem;
+    border-radius: 0 0 calc(var(--radius) * 2) calc(var(--radius) * 2);
+    background: linear-gradient(to top, rgb(0 0 0 / 0.8), transparent);
+    font-size: 1.0625rem;
+    pointer-events: none;
+  }
+  .work figcaption .gallery-num { color: rgb(255 255 255 / 0.7); }
+  .work-more a { aspect-ratio: 4 / 5; font-size: 1.5rem; }
+  .works-progress {
+    display: block;
+    height: 1px;
+    margin: 1.25rem var(--gutter) 0;
+    background: var(--line);
+  }
+  .works-progress span {
+    display: block;
+    height: 100%;
+    background: var(--text);
+    transform: scaleX(0.04);
+    transform-origin: 0 50%;
+    transition: transform 0.15s linear;
+  }
+
+  /* ---- Prețuri pe file: o categorie odată, cu descrieri, text mare ---- */
+  .board-tabs:not([hidden]) {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    margin-bottom: 1.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+  }
+  .board-tab {
+    min-height: 2.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.25s, color 0.25s;
+  }
+  .board-tab[aria-selected='true'] { background: var(--text); color: var(--bg); }
+  .board-tab:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .board.has-tabs .board-group { display: none; margin-top: 0; }
+  .board.has-tabs .board-group.is-active { display: block; animation: tab-in 0.35s ease-out; }
+  .board.has-tabs .board-group-title { display: none; }
+  .board.has-tabs .service { padding-block: 0.875rem; }
+  .board.has-tabs .service-name,
+  .board.has-tabs .service-price { font-size: 1.25rem; }
+  .board.has-tabs .service-desc { margin-top: 0.25rem; font-size: 0.875rem; line-height: 1.45; }
+  .board.has-tabs .service-time { font-size: inherit; }
+  .board.has-tabs .board-note { margin-top: 1.25rem; }
+}
+@keyframes tab-in {
+  from { opacity: 0; transform: translateY(0.5rem); }
+}
+@media (min-width: 48rem) {
+  .works-progress { display: none; }
 }

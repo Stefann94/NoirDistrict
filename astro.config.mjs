@@ -1,11 +1,22 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import vercel from '@astrojs/vercel';
 import { SITE_URL } from './src/data/site.mjs';
 
 export default defineConfig({
   site: SITE_URL,
   trailingSlash: 'always',
+  // Site-ul rămâne static; doar rutele cu `export const prerender = false` (src/pages/api/) rulează
+  // pe server, ca funcții Vercel.
+  adapter: vercel(),
+  // Secrete, citite doar pe server (Vercel → Settings → Environment Variables). Nu ajung niciodată în browser.
+  env: {
+    schema: {
+      CALLMEBOT_PHONE: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CALLMEBOT_APIKEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+    },
+  },
   build: {
     format: 'directory',
     // CSS-ul e mic: îl punem inline și eliminăm request-urile care blochează randarea.

@@ -182,6 +182,70 @@
   .card { padding: 2.5rem; }
 }
 
+/* Starea „deschis acum” (toate ecranele) */
+.open-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.open-status::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.open-status.is-open { color: var(--text); }
+.open-status.is-open::before { background: #7fd3a0; box-shadow: 0 0 0 0 rgb(127 211 160 / 0.6); }
+@media (prefers-reduced-motion: no-preference) {
+  .open-status.is-open::before { animation: open-pulse 2.4s ease-out infinite; }
+}
+@keyframes open-pulse {
+  to { box-shadow: 0 0 0 0.5rem rgb(127 211 160 / 0); }
+}
+
+/* Ziua de azi în program */
+.hours-row.is-today dt,
+.hours-row.is-today dd { color: var(--text); font-weight: 600; }
+.hours-row.is-today dt::after { content: ' · azi'; font-weight: 400; color: var(--muted); }
+
+/* Butoanele mari de acțiune: doar pe telefon (pe desktop rămân Google Maps / Waze) */
+.location-actions { display: none; }
+
+@media (max-width: 47.99rem) {
+  .location-buttons { display: none; }
+  .location-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0;
+    list-style: none;
+  }
+  .location-actions a {
+    display: grid;
+    justify-items: center;
+    gap: 0.375rem;
+    padding: 0.875rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .location-actions li:first-child a { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .location-actions a:active { background: var(--surface-2); }
+  /* Program compact */
+  .hours-row { padding-block: 0.4375rem; font-size: 0.9375rem; }
+  .card { gap: 1rem; padding: 1.25rem; }
+  .card-title { font-size: 1.375rem; }
+}
+
 /* ---- Bandă de final cu îndemn ---- */
 
 .cta {

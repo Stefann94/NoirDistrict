@@ -4,7 +4,7 @@ import { weeklyHours } from '../data/business';
 
 <dl class="hours">
   {weeklyHours.map((d) => (
-    <div class:list={['hours-row', { closed: !d.hours }]}>
+    <div class:list={['hours-row', { closed: !d.hours }]} data-day={d.day}>
       <dt>{d.label}</dt>
       <dd>{d.hours ?? 'Închis'}</dd>
     </div>

@@ -20,6 +20,16 @@ const config = {
     </div>
   ) : (
     <form class="booking" id="booking-form" data-config={JSON.stringify(config)} novalidate>
+      {/* Telefon: asistent pas cu pas (activat de scripts/booking.ts). Pe desktop rămâne ascuns. */}
+      <div class="wizard" data-wizard hidden>
+        <div class="wizard-top">
+          <span class="wizard-count" data-wizard-count>Pasul 1 din 4</span>
+          <span class="wizard-title" data-wizard-title>Serviciul</span>
+        </div>
+        <div class="wizard-bar" aria-hidden="true"><span data-wizard-bar></span></div>
+        <ul class="wizard-picks" data-wizard-picks aria-label="Ce ai ales"></ul>
+      </div>
+
       <fieldset class="booking-step">
         <legend><span>1</span> Serviciul</legend>
         <div class="choices">
@@ -89,11 +99,21 @@ const config = {
         </div>
       </fieldset>
 
-      <p class="booking-error" data-error role="alert"></p>
+      <div class="wizard-nav" data-wizard-nav hidden>
+        <button type="button" class="btn btn-ghost" data-wizard-back>Înapoi</button>
+        <button type="button" class="btn btn-primary" data-wizard-next>Continuă</button>
+      </div>
 
-      <button class="btn btn-primary booking-submit" type="submit">Trimite cererea pe WhatsApp</button>
+      <p class="booking-error" data-error role="alert"></p>
+      {/* Rezervă, dacă serverul nu poate trimite cererea: clientul nu rămâne blocat. */}
+      <div class="booking-fallback" data-fallback hidden>
+        <a class="btn btn-ghost" data-fallback-whatsapp href="#" target="_blank" rel="noopener">Trimite pe WhatsApp</a>
+        <a class="btn btn-ghost" href={telHref}>Sună</a>
+      </div>
+
+      <button class="btn btn-primary booking-submit" type="submit">Trimite cererea</button>
       <p class="booking-note">
-        {business.owner} îți confirmă programarea pe WhatsApp. Preferi să suni?
+        Cererea ajunge direct la {business.owner}, care te sună sau îți scrie ca să confirme. Preferi să suni?
         <a href={telHref}>{business.phoneDisplay}</a>
       </p>
       <noscript>
@@ -104,6 +124,21 @@ const config = {
     </form>
   )
 }
+
+{!business.bookingUrl && (
+  <div class="booking booking-done" data-booking-done hidden tabindex="-1" role="status">
+    <span class="booking-done-mark" aria-hidden="true"></span>
+    <h3>Cererea a ajuns la {business.owner}</h3>
+    <p class="booking-done-lead">Te contactează în curând, telefonic sau pe WhatsApp, ca să confirme programarea.</p>
+    <dl class="booking-done-summary">
+      <div><dt>Serviciu</dt><dd data-done="service"></dd></div>
+      <div><dt>Când</dt><dd data-done="when"></dd></div>
+      <div><dt>Nume</dt><dd data-done="name"></dd></div>
+      <div><dt>Telefon</dt><dd data-done="phone"></dd></div>
+    </dl>
+    <button class="btn btn-ghost" type="button" data-done-again>Altă programare</button>
+  </div>
+)}
 
 <script>
   import { initBooking } from '../scripts/booking';
