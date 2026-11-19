@@ -8,6 +8,7 @@ const config = {
   slotMinutes: business.slotMinutes,
   days: business.bookingDays,
   whatsapp: business.whatsapp,
+  owner: business.owner,
 };
 ---
 
@@ -92,6 +93,24 @@ const config = {
             />
             <p class="field-error" id="booking-phone-error" aria-live="polite"></p>
           </div>
+          <div class="field field-wide">
+            <label for="booking-email">Email <span class="field-hint">· aici primești confirmarea și linkul de anulare</span></label>
+            <input
+              id="booking-email"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              autocapitalize="off"
+              spellcheck="false"
+              enterkeyhint="send"
+              maxlength="120"
+              placeholder="nume@gmail.com"
+              aria-describedby="booking-email-error"
+              required
+            />
+            <p class="field-error" id="booking-email-error" aria-live="polite"></p>
+          </div>
         </div>
         {/* Capcană pentru roboți: invizibilă pentru oameni, completată doar de programele automate. */}
         <div class="booking-trap" aria-hidden="true">
@@ -113,7 +132,7 @@ const config = {
 
       <button class="btn btn-primary booking-submit" type="submit">Trimite cererea</button>
       <p class="booking-note">
-        Cererea ajunge direct la {business.owner}, care te sună sau îți scrie ca să confirme. Preferi să suni?
+        Ora se rezervă pe loc. {business.owner} confirmă cererea, iar tu primești confirmarea pe email, cu link de anulare. Preferi să suni?
         <a href={telHref}>{business.phoneDisplay}</a>
       </p>
       <noscript>
@@ -129,13 +148,15 @@ const config = {
   <div class="booking booking-done" data-booking-done hidden tabindex="-1" role="status">
     <span class="booking-done-mark" aria-hidden="true"></span>
     <h3>Cererea a ajuns la {business.owner}</h3>
-    <p class="booking-done-lead">Te contactează în curând, telefonic sau pe WhatsApp, ca să confirme programarea.</p>
+    <p class="booking-done-lead">Ora e rezervată pentru tine până o confirmă.</p>
     <dl class="booking-done-summary">
       <div><dt>Serviciu</dt><dd data-done="service"></dd></div>
       <div><dt>Când</dt><dd data-done="when"></dd></div>
       <div><dt>Nume</dt><dd data-done="name"></dd></div>
       <div><dt>Telefon</dt><dd data-done="phone"></dd></div>
     </dl>
+    <p class="booking-done-email" data-done="email"></p>
+    <a class="btn btn-primary" data-done-manage href="#" hidden>Vezi cererea / anulează</a>
     <button class="btn btn-ghost" type="button" data-done-again>Altă programare</button>
   </div>
 )}

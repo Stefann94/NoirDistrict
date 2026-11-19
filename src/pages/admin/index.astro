@@ -1,0 +1,253 @@
+---
+// Administrare (doar Orlando): programările pe zile, anulare, programări adăugate manual, ore blocate.
+// Gândită pentru telefon. Formulare simple: merg și fără JavaScript.
+import { Font } from 'astro:assets';
+import '../../styles/global.css';
+import '../../styles/admin.css';
+import { business, serviceGroups } from '../../data/business';
+import { adminConfigured, isAdmin } from '../../lib/admin-auth';
+import { addDays, isDayKey, isRealDay, local, TIME_ZONE, toInstant } from '../../lib/schedule';
+import { store, NotConfigured, HOLDING, type Booking, type Block } from '../../lib/store';
+import { sweepExpired } from '../../lib/booking-server';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+
+const configured = adminConfigured();
+const logged = configured && (await isAdmin(Astro.cookies));
+const q = Astro.url.searchParams;
+const today = local().day;
+const day = isDayKey(q.get('zi')) && isRealDay(q.get('zi')!) ? q.get('zi')! : today;
+const flash = q.get('ok') ? { ok: true, text: q.get('ok')! } : q.get('eroare') ? { ok: false, text: q.get('eroare')! } : null;
+
+const hour = new Intl.DateTimeFormat('ro-RO', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const fmtDay = (k: string, opts: Intl.DateTimeFormatOptions) => {
+  const [y, m, d] = k.split('-').map(Number);
+  return new Intl.DateTimeFormat('ro-RO', { ...opts, timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d)));
+};
+
+let bookings: Booking[] = [];
+let blocks: Block[] = [];
+let week: { day: string; count: number }[] = [];
+let pending = 0;
+let dbError = '';
+if (logged) {
+  try {
+    await sweepExpired().catch(() => {});
+    const from = toInstant(day, 0).toISOString();
+    const to = toInstant(addDays(day, 1), 0).toISOString();
+    [bookings, blocks] = await Promise.all([store().list(from, to), store().blocks(from, to)]);
+    const upcoming = await store().list(toInstant(today, 0).toISOString(), toInstant(addDays(today, 7), 0).toISOString());
+    week = Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(today, i);
+      return { day: d, count: upcoming.filter((b) => HOLDING.includes(b.status) && local(new Date(b.starts_at)).day === d).length };
+    });
+    pending = upcoming.filter((b) => b.status === 'pending').length;
+  } catch (error) {
+    dbError = error instanceof NotConfigured ? 'Baza de date nu e configurată (lipsesc cheile Supabase în Vercel).' : 'Nu am putut încărca programările.';
+    if (!(error instanceof NotConfigured)) console.error('Admin:', error);
+  }
+}
+const active = bookings.filter((b) => HOLDING.includes(b.status));
+const STATUS_TAG: Partial<Record<Booking['status'], string>> = {
+  pending: 'așteaptă confirmarea',
+  cancelled: 'anulată',
+  declined: 'refuzată',
+  expired: 'expirată',
+};
+const services = serviceGroups.flatMap((g) => g.services);
+const range = (b: { starts_at: string; ends_at: string }) => `${hour.format(new Date(b.starts_at))}–${hour.format(new Date(b.ends_at))}`;
+---
+
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Administrare · {business.name}</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <Font cssVariable="--font-display" preload />
+  </head>
+  <body class="admin">
+    <header class="admin-top">
+      <p class="admin-brand">{business.name} <span>Programări</span></p>
+      {logged && (
+        <form method="post" action="/api/admin/">
+          <input type="hidden" name="action" value="logout" />
+          <button class="admin-link" type="submit">Ieși</button>
+        </form>
+      )}
+    </header>
+
+    <main class="admin-main">
+      {flash && <p class:list={['admin-flash', { 'is-error': !flash.ok }]} role="status">{flash.text}</p>}
+
+      {!configured ? (
+        <section class="admin-card">
+          <h1>Administrarea nu e activă</h1>
+          <p>Setează parola în Vercel → Settings → Environment Variables, cu numele <code>ADMIN_PASSWORD</code>, apoi redeploy.</p>
+        </section>
+      ) : !logged ? (
+        <section class="admin-card admin-login">
+          <h1>Autentificare</h1>
+          <form method="post" action="/api/admin/">
+            <input type="hidden" name="action" value="login" />
+            <label class="admin-field">
+              <span>Parola</span>
+              <input type="password" name="password" autocomplete="current-password" required autofocus />
+            </label>
+            <button class="admin-btn admin-btn-primary" type="submit">Intră</button>
+          </form>
+        </section>
+      ) : (
+        <>
+          {dbError && <p class="admin-flash is-error">{dbError}</p>}
+          {pending > 0 && (
+            <p class="admin-flash is-pending">
+              {pending === 1 ? 'O cerere așteaptă' : `${pending} cereri așteaptă`} confirmarea ta în următoarele 7 zile (marcate cu galben).
+            </p>
+          )}
+
+          {/* Navigare pe zile */}
+          <nav class="admin-days" aria-label="Zile">
+            <a class="admin-arrow" href={`/admin/?zi=${addDays(day, -1)}`} aria-label="Ziua anterioară">‹</a>
+            <form method="get" action="/admin/" class="admin-date">
+              <input type="date" name="zi" value={day} aria-label="Alege ziua" onchange="this.form.submit()" />
+            </form>
+            <a class="admin-arrow" href={`/admin/?zi=${addDays(day, 1)}`} aria-label="Ziua următoare">›</a>
+            {day !== today && <a class="admin-link" href="/admin/">Azi</a>}
+          </nav>
+          <ul class="admin-week">
+            {week.map((w) => (
+              <li>
+                <a href={`/admin/?zi=${w.day}`} class:list={{ 'is-current': w.day === day }}>
+                  <span>{w.day === today ? 'Azi' : fmtDay(w.day, { weekday: 'short' })}</span>
+                  <b>{w.count}</b>
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <h1 class="admin-title">
+            {fmtDay(day, { weekday: 'long', day: 'numeric', month: 'long' })}
+            <small>{active.length} {active.length === 1 ? 'programare' : 'programări'}</small>
+          </h1>
+
+          {/* Programările zilei */}
+          <ul class="admin-list">
+            {bookings.length === 0 && <li class="admin-empty">Nicio programare în ziua asta.</li>}
+            {bookings.map((b) => (
+              <li class:list={['admin-booking', { 'is-cancelled': !HOLDING.includes(b.status), 'is-pending': b.status === 'pending' }]}>
+                <div class="admin-booking-time">{range(b)}</div>
+                <div class="admin-booking-main">
+                  <p class="admin-booking-name">
+                    {b.name}
+                    {b.source === 'admin' && <span class="admin-tag">adăugată de tine</span>}
+                    {STATUS_TAG[b.status] && <span class:list={['admin-tag', { 'is-pending': b.status === 'pending' }]}>{STATUS_TAG[b.status]}</span>}
+                  </p>
+                  <p>{b.service} · {b.price} lei · {b.duration} min</p>
+                  <p class="admin-contact">
+                    <a href={`tel:${b.phone.replace(/\s/g, '')}`}>{b.phone}</a>
+                    <a href={`https://wa.me/${b.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener">WhatsApp</a>
+                    {b.email && <a href={`mailto:${b.email}`}>{b.email}</a>}
+                  </p>
+                </div>
+                {b.status === 'pending' && (
+                  <div class="admin-booking-actions">
+                    <form method="post" action="/api/admin/">
+                      <input type="hidden" name="action" value="confirm" />
+                      <input type="hidden" name="id" value={b.id} />
+                      <input type="hidden" name="zi" value={day} />
+                      <button class="admin-btn admin-btn-primary" type="submit">Confirmă</button>
+                    </form>
+                    <form method="post" action="/api/admin/" data-confirm={`Refuzi cererea lui ${b.name} (${range(b)})? Clientul primește email.`}>
+                      <input type="hidden" name="action" value="decline" />
+                      <input type="hidden" name="id" value={b.id} />
+                      <input type="hidden" name="zi" value={day} />
+                      <button class="admin-btn admin-btn-danger" type="submit">Refuză</button>
+                    </form>
+                  </div>
+                )}
+                {b.status === 'confirmed' && (
+                  <form method="post" action="/api/admin/" data-confirm={`Anulezi programarea lui ${b.name} (${range(b)})? Clientul primește email.`}>
+                    <input type="hidden" name="action" value="cancel" />
+                    <input type="hidden" name="id" value={b.id} />
+                    <input type="hidden" name="zi" value={day} />
+                    <button class="admin-btn admin-btn-danger" type="submit">Anulează</button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {/* Ore blocate */}
+          {blocks.length > 0 && (
+            <ul class="admin-list">
+              {blocks.map((bl) => (
+                <li class="admin-booking is-block">
+                  <div class="admin-booking-time">{range(bl)}</div>
+                  <div class="admin-booking-main"><p class="admin-booking-name">Blocat{bl.note ? ` · ${bl.note}` : ''}</p></div>
+                  <form method="post" action="/api/admin/">
+                    <input type="hidden" name="action" value="unblock" />
+                    <input type="hidden" name="id" value={bl.id} />
+                    <input type="hidden" name="zi" value={day} />
+                    <button class="admin-btn" type="submit">Deblochează</button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Programare adăugată manual (ex. primită la telefon) */}
+          <details class="admin-card">
+            <summary>+ Adaugă o programare</summary>
+            <form method="post" action="/api/admin/" class="admin-form">
+              <input type="hidden" name="action" value="add" />
+              <label class="admin-field">
+                <span>Serviciu</span>
+                <select name="service" required>
+                  {services.map((s) => <option value={s.name}>{s.name} · {s.price} lei · {s.duration} min</option>)}
+                </select>
+              </label>
+              <div class="admin-row">
+                <label class="admin-field"><span>Ziua</span><input type="date" name="zi" value={day} required /></label>
+                <label class="admin-field"><span>Ora</span><input type="time" name="ora" step="900" required /></label>
+              </div>
+              <label class="admin-field"><span>Nume</span><input name="name" autocomplete="off" required /></label>
+              <label class="admin-field"><span>Telefon</span><input name="phone" type="tel" inputmode="tel" required /></label>
+              <label class="admin-field"><span>Email (opțional: primește confirmarea)</span><input name="email" type="email" inputmode="email" /></label>
+              <button class="admin-btn admin-btn-primary" type="submit">Adaugă</button>
+            </form>
+          </details>
+
+          {/* Blocare ore */}
+          <details class="admin-card">
+            <summary>+ Blochează un interval (pauză, concediu)</summary>
+            <form method="post" action="/api/admin/" class="admin-form">
+              <input type="hidden" name="action" value="block" />
+              <label class="admin-field"><span>Ziua</span><input type="date" name="zi" value={day} required /></label>
+              <div class="admin-row">
+                <label class="admin-field"><span>De la</span><input type="time" name="de" step="900" required /></label>
+                <label class="admin-field"><span>Până la</span><input type="time" name="pana" step="900" required /></label>
+              </div>
+              <label class="admin-field"><span>Notă (opțional)</span><input name="nota" maxlength="120" placeholder="ex. pauză de prânz" /></label>
+              <button class="admin-btn admin-btn-primary" type="submit">Blochează</button>
+            </form>
+          </details>
+        </>
+      )}
+    </main>
+
+    <script>
+      // Confirmare înainte de anulare.
+      document.querySelectorAll<HTMLFormElement>('form[data-confirm]').forEach((f) =>
+        f.addEventListener('submit', (e) => {
+          if (!confirm(f.dataset.confirm)) e.preventDefault();
+        }),
+      );
+    </script>
+  </body>
+</html>

@@ -13,8 +13,18 @@ export default defineConfig({
   // Secrete, citite doar pe server (Vercel → Settings → Environment Variables). Nu ajung niciodată în browser.
   env: {
     schema: {
+      // Baza de date (Supabase → Project Settings → API): adresa proiectului și cheia „service_role”.
+      SUPABASE_URL: envField.string({ context: 'server', access: 'secret', optional: true }),
+      SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Emailuri către clienți: contul Gmail al frizeriei și o „parolă de aplicație” (nu parola contului).
+      GMAIL_USER: envField.string({ context: 'server', access: 'secret', optional: true }),
+      GMAIL_APP_PASSWORD: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Mesaj pe WhatsApp-ul lui Orlando la fiecare programare / anulare / reprogramare.
       CALLMEBOT_PHONE: envField.string({ context: 'server', access: 'secret', optional: true }),
       CALLMEBOT_APIKEY: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Parola paginii de administrare (/admin) și cheia cu care Vercel pornește mementourile zilnice.
+      ADMIN_PASSWORD: envField.string({ context: 'server', access: 'secret', optional: true }),
+      CRON_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
   build: {
@@ -25,7 +35,8 @@ export default defineConfig({
   compressHTML: true,
   // Bara de unelte Astro (doar în `npm run dev`) acoperă butoanele din bara de jos de pe telefon.
   devToolbar: { enabled: false },
-  integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
+  // Paginile private (administrare, programarea personală) și 404 nu apar în sitemap.
+  integrations: [sitemap({ filter: (page) => !['/404', '/admin', '/programare/', '/confirmare/'].some((p) => page.includes(p)) })],
   fonts: [
     {
       name: 'Bodoni Moda',

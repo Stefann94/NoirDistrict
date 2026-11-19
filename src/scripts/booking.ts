@@ -1,33 +1,26 @@
-// Formularul de programare: generează zilele și orele din program și trimite cererea pe WhatsApp.
-import type { DayCode, OpeningHours } from '../data/business';
-import { checkName, checkPhone } from './validate';
+// Formularul de programare: arată doar orele libere reale (din baza de date, ținute la zi) și trimite
+// cererea la server. Serverul rezervă ora și îi trimite lui Orlando pe WhatsApp linkul de confirmare;
+// clientul primește pe email „am primit cererea”, apoi confirmarea.
+import type { OpeningHours } from '../data/business';
+import { checkEmail, checkName, checkPhone } from './validate';
+import { addDays, freeSlots, local, type Busy, type SlotRules } from '../lib/schedule';
 
 interface Config {
   hours: OpeningHours[];
   slotMinutes: number;
   days: number;
   whatsapp: string;
+  owner: string;
 }
 
-const JS_DAY: DayCode[] = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-/** Cât timp înainte se poate rezerva pentru ziua curentă. */
-const LEAD_MINUTES = 30;
-
-const toMinutes = (hhmm: string) => {
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-};
-const toTime = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
-const toKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+// Zilele sunt chei „2026-11-21”; le afișăm pe UTC, ca să nu depindă de fusul orar al telefonului.
 const fromKey = (key: string) => {
   const [y, m, d] = key.split('-').map(Number);
-  return new Date(y, m - 1, d);
+  return new Date(Date.UTC(y, m - 1, d));
 };
-
-const weekday = new Intl.DateTimeFormat('ro-RO', { weekday: 'short' });
-const dayMonth = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short' });
-const longDate = new Intl.DateTimeFormat('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
+const weekday = new Intl.DateTimeFormat('ro-RO', { weekday: 'short', timeZone: 'UTC' });
+const dayMonth = new Intl.DateTimeFormat('ro-RO', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const longDate = new Intl.DateTimeFormat('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 function chip(name: string, value: string, top: string, bottom?: string, disabled = false) {
   const label = document.createElement('label');
@@ -59,30 +52,36 @@ export function initBooking(form: HTMLFormElement) {
   const selectedService = () => form.querySelector<HTMLInputElement>('input[name="service"]:checked');
   const duration = () => Number(selectedService()?.dataset.duration ?? config.slotMinutes);
 
-  const slotsFor = (date: Date) => {
-    const schedule = config.hours.find((h) => h.days.includes(JS_DAY[date.getDay()]));
-    if (!schedule) return [];
-    const now = new Date();
-    const isToday = toKey(date) === toKey(now);
-    const earliest = isToday ? now.getHours() * 60 + now.getMinutes() + LEAD_MINUTES : 0;
-    const slots: string[] = [];
-    const last = toMinutes(schedule.closes) - duration();
-    for (let t = toMinutes(schedule.opens); t <= last; t += config.slotMinutes) {
-      if (t >= earliest) slots.push(toTime(t));
+  /* ---- Orele ocupate, din baza de date ---- */
+  const rules: SlotRules = { hours: config.hours, slotMinutes: config.slotMinutes, leadMinutes: 30 };
+  let busy: Record<string, Busy[]> = {};
+  let today = local().day;
+
+  async function loadAvailability() {
+    try {
+      const res = await fetch('/api/disponibilitate/', { cache: 'no-store' });
+      const data = (await res.json()) as { ok?: boolean; today?: string; days?: Record<string, Busy[]> };
+      if (data.ok && data.days) {
+        busy = data.days;
+        if (data.today) today = data.today;
+      }
+    } catch {
+      /* fără rețea: arătăm programul; serverul verifică oricum la trimitere */
     }
-    return slots;
-  };
+    renderDays();
+    renderSlots();
+  }
+
+  const slotsFor = (day: string) => freeSlots(day, duration(), busy[day] ?? [], rules);
 
   function renderDays() {
     const selected = form.querySelector<HTMLInputElement>('input[name="day"]:checked')?.value;
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
     daysEl.replaceChildren(
       ...Array.from({ length: config.days }, (_, i) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
+        const day = addDays(today, i);
+        const date = fromKey(day);
         const label = i === 0 ? 'Azi' : i === 1 ? 'Mâine' : weekday.format(date);
-        const el = chip('day', toKey(date), label, dayMonth.format(date), slotsFor(date).length === 0);
+        const el = chip('day', day, label, dayMonth.format(date), slotsFor(day).length === 0);
         const input = el.querySelector('input')!;
         if (input.value === selected && !input.disabled) input.checked = true;
         return el;
@@ -92,9 +91,12 @@ export function initBooking(form: HTMLFormElement) {
 
   function renderSlots() {
     const day = form.querySelector<HTMLInputElement>('input[name="day"]:checked');
-    if (!day) return;
+    if (!day) {
+      slotsEl.innerHTML = '<p class="booking-hint">Alege întâi ziua.</p>';
+      return;
+    }
     const selected = form.querySelector<HTMLInputElement>('input[name="slot"]:checked')?.value;
-    const slots = slotsFor(fromKey(day.value));
+    const slots = slotsFor(day.value);
     if (!slots.length) {
       slotsEl.innerHTML = '<p class="booking-hint">Nu mai sunt ore libere în ziua asta.</p>';
       return;
@@ -220,6 +222,7 @@ export function initBooking(form: HTMLFormElement) {
   const fields = {
     name: { input: form.querySelector<HTMLInputElement>('input[name="name"]')!, check: checkName },
     phone: { input: form.querySelector<HTMLInputElement>('input[name="phone"]')!, check: checkPhone },
+    email: { input: form.querySelector<HTMLInputElement>('input[name="email"]')!, check: checkEmail },
   };
   const touched = new Set<keyof typeof fields>();
 
@@ -273,13 +276,14 @@ export function initBooking(form: HTMLFormElement) {
     // Ziua și ora trebuie să fie unele dintre cele generate de noi și încă disponibile.
     const day = dayInput && /^\d{4}-\d{2}-\d{2}$/.test(dayInput.value) && !dayInput.disabled ? dayInput.value : null;
     const slot =
-      day && slotInput && /^\d{2}:\d{2}$/.test(slotInput.value) && slotsFor(fromKey(day)).includes(slotInput.value)
+      day && slotInput && /^\d{2}:\d{2}$/.test(slotInput.value) && slotsFor(day).includes(slotInput.value)
         ? slotInput.value
         : null;
 
     const name = validate('name');
     const phone = validate('phone');
-    touched.add('name').add('phone');
+    const email = validate('email');
+    touched.add('name').add('phone').add('email');
 
     const missing = !service ? 'serviciul' : !day ? 'ziua' : !slot ? 'ora' : null;
     if (missing) {
@@ -290,19 +294,20 @@ export function initBooking(form: HTMLFormElement) {
           ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       return;
     }
-    if (!name || !phone) {
+    if (!name || !phone || !email) {
       errorEl.textContent = 'Verifică datele de mai sus.';
-      (name ? fields.phone.input : fields.name.input).focus();
+      (!name ? fields.name.input : !phone ? fields.phone.input : fields.email.input).focus();
       return;
     }
 
     fields.name.input.value = name;
     fields.phone.input.value = phone;
+    fields.email.input.value = email;
     lastSent = Date.now();
-    send({ service: service!.value, price: service!.dataset.price ?? '', day: day!, slot: slot!, name, phone });
+    send({ service: service!.value, price: service!.dataset.price ?? '', day: day!, slot: slot!, name, phone, email });
   });
 
-  /* ---- Trimiterea către server (care o dă mai departe pe WhatsApp-ul lui Orlando) ---- */
+  /* ---- Trimiterea către server (salvează programarea, trimite emailul și WhatsApp-ul lui Orlando) ---- */
 
   const done = form.parentElement?.querySelector<HTMLElement>('[data-booking-done]');
   const fallback = form.querySelector<HTMLElement>('[data-fallback]');
@@ -321,9 +326,10 @@ export function initBooking(form: HTMLFormElement) {
       ].join('\n'),
     )}`;
 
-  type Request = { service: string; price: string; day: string; slot: string; name: string; phone: string };
+  type Request = { service: string; price: string; day: string; slot: string; name: string; phone: string; email: string };
 
   async function send(r: Request) {
+    sending = true;
     if (submit) {
       submit.disabled = true;
       submit.textContent = 'Se trimite…';
@@ -333,13 +339,13 @@ export function initBooking(form: HTMLFormElement) {
       const res = await fetch('/api/programare/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service: r.service, day: r.day, slot: r.slot, name: r.name, phone: r.phone, website: trap?.value ?? '' }),
+        body: JSON.stringify({ service: r.service, day: r.day, slot: r.slot, name: r.name, phone: r.phone, email: r.email, website: trap?.value ?? '' }),
       });
-      const answer = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; field?: string };
-      if (res.ok && answer.ok) return success(r);
+      const answer = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; field?: string; manage?: string; emailSent?: boolean };
+      if (res.ok && answer.ok) return success(r, answer.manage, answer.emailSent);
 
       // Serverul a respins o valoare anume: arătăm mesajul lângă câmpul ei.
-      if (answer.field === 'name' || answer.field === 'phone') {
+      if (answer.field === 'name' || answer.field === 'phone' || answer.field === 'email') {
         const input = fields[answer.field].input;
         document.getElementById(input.getAttribute('aria-describedby')!)!.textContent = answer.error ?? '';
         input.setAttribute('aria-invalid', 'true');
@@ -347,8 +353,8 @@ export function initBooking(form: HTMLFormElement) {
         errorEl.textContent = 'Verifică datele de mai sus.';
       } else if (answer.field) {
         errorEl.textContent = answer.error ?? 'Alege din nou ziua și ora.';
-        renderDays();
-        renderSlots();
+        // Ora s-a ocupat între timp: reîncărcăm orele libere.
+        await loadAvailability();
         wizard.go(answer.field === 'service' ? 1 : answer.field === 'day' ? 2 : 3);
       } else {
         throw new Error(answer.error ?? `HTTP ${res.status}`);
@@ -361,6 +367,7 @@ export function initBooking(form: HTMLFormElement) {
         fallback.querySelector<HTMLAnchorElement>('[data-fallback-whatsapp]')!.href = whatsappLink(r);
       }
     } finally {
+      sending = false;
       if (submit) {
         submit.textContent = submitLabel;
         setTimeout(() => (submit.disabled = false), 1500);
@@ -368,7 +375,7 @@ export function initBooking(form: HTMLFormElement) {
     }
   }
 
-  function success(r: Request) {
+  function success(r: Request, manage?: string, emailSent?: boolean) {
     if (!done) return;
     // Rezumatul se scrie doar ca text (textContent), niciodată ca HTML.
     const set = (key: string, value: string) => {
@@ -379,23 +386,56 @@ export function initBooking(form: HTMLFormElement) {
     set('when', `${longDate.format(fromKey(r.day))}, ora ${r.slot}`);
     set('name', r.name);
     set('phone', r.phone);
+    set(
+      'email',
+      emailSent
+        ? `Ți-am trimis pe ${r.email} detaliile cererii. Când ${config.owner} o confirmă, primești încă un email.`
+        : `Când ${config.owner} confirmă, primești un email pe ${r.email}. Păstrează și linkul de mai jos: cu el poți anula.`,
+    );
+    const link = done.querySelector<HTMLAnchorElement>('[data-done-manage]');
+    if (link && manage) {
+      link.href = manage;
+      link.hidden = false;
+    }
     form.hidden = true;
     done.hidden = false;
     done.focus();
     done.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
+  /* ---- Orele libere, ținute la zi cât timp formularul e pe ecran ----
+     Dacă altcineva rezervă între timp, ora dispare din listă; dacă era chiar ora aleasă, clientul e anunțat. */
+  let onScreen = false;
+  let sending = false;
+  async function refresh() {
+    if (sending || form.hidden || document.visibilityState !== 'visible') return;
+    const slot = form.querySelector<HTMLInputElement>('input[name="slot"]:checked')?.value;
+    await loadAvailability();
+    if (slot && !form.querySelector('input[name="slot"]:checked')) {
+      errorEl.textContent = `Ora ${slot} tocmai a fost rezervată de altcineva. Alege, te rog, altă oră.`;
+      if (wizard.on()) wizard.go(3, false);
+    }
+  }
+  new IntersectionObserver(([entry]) => {
+    const was = onScreen;
+    onScreen = entry.isIntersecting;
+    if (onScreen && !was) refresh();
+  }, { rootMargin: '200px 0px' }).observe(form);
+  setInterval(() => onScreen && refresh(), 20_000);
+  document.addEventListener('visibilitychange', () => onScreen && refresh());
+
   done?.querySelector('[data-done-again]')?.addEventListener('click', () => {
     form.reset();
     Object.values(fields).forEach(({ input }) => input.removeAttribute('aria-invalid'));
     form.querySelectorAll<HTMLElement>('.field-error').forEach((el) => (el.textContent = ''));
     touched.clear();
-    renderDays();
-    slotsEl.innerHTML = '<p class="booking-hint">Alege întâi ziua.</p>';
+    loadAvailability();
     done.hidden = true;
     form.hidden = false;
     wizard.go(1);
   });
 
   renderDays();
+  renderSlots();
+  loadAvailability();
 }

@@ -291,3 +291,48 @@
   text-underline-offset: 0.3em;
   color: var(--muted);
 }
+
+/* Emailul ocupă tot rândul; mică explicație lângă etichetă */
+.field-hint { font-size: 0.6875rem; color: color-mix(in srgb, var(--muted) 75%, transparent); }
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .field-wide { grid-column: 1 / -1; }
+}
+.booking-done-email { font-size: 0.875rem; color: var(--muted); }
+.booking-done [data-done-manage][hidden] { display: none; }
+
+/* ---- Pagina personală a programării (/programare/…) ---- */
+.manage { display: grid; justify-items: center; padding-block: 3rem 4rem; }
+.manage-card {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  width: min(100%, 36rem);
+  padding: 2rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 2);
+  text-align: center;
+}
+.manage-card h1 { font-size: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem); }
+.manage-summary { width: 100%; }
+.manage-summary .is-cancelled { text-decoration: line-through; color: var(--muted); }
+.manage-actions { justify-content: center; width: 100%; }
+.manage-actions .btn { flex: 1 1 10rem; }
+.manage-message:empty { display: none; }
+.manage-message.is-ok { color: #7fd3a0; }
+.manage-lead { max-width: 28rem; margin: -0.5rem 0 0; color: var(--muted); }
+.manage-state { display: inline-flex; align-items: center; gap: 0.5em; }
+.manage-state::before { content: ''; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; }
+.manage-state[data-state='pending'] { color: #e7c77a; }
+.manage-state[data-state='confirmed'] { color: #7fd3a0; }
+.manage-state:is([data-state='declined'], [data-state='expired'], [data-state='cancelled']) { color: var(--muted); }
+.manage-cancel,
+.manage-late { display: grid; gap: 0.875rem; width: 100%; justify-items: center; }
+.manage-cancel[hidden],
+.manage-new[hidden],
+[data-manage-actions][hidden] { display: none; }
+.manage-note { max-width: 26rem; }
+@media (min-width: 48rem) {
+  .manage { padding-block: 4.5rem 6rem; }
+  .manage-card { padding: 2.75rem 2.5rem; }
+}

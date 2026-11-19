@@ -1,0 +1,168 @@
+---
+// Pagina personală a programării (din linkul primit pe email): stare, detalii, anulare.
+// Fără cont: cine are linkul (cheie aleatorie, imposibil de ghicit) își poate anula programarea.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { business, telHref } from '../../data/business';
+import { store, NotConfigured, type Booking } from '../../lib/store';
+import { canCancel, CHANGE_LIMIT_MINUTES, isToken, sweepExpired } from '../../lib/booking-server';
+import { describeWhen } from '../../lib/notify';
+import '../../styles/booking.css';
+
+export const prerender = false;
+
+const token = Astro.params.token ?? '';
+let booking: Booking | null = null;
+let unavailable = false;
+if (isToken(token)) {
+  try {
+    await sweepExpired().catch(() => {});
+    booking = await store().byToken(token);
+  } catch (error) {
+    unavailable = true;
+    if (!(error instanceof NotConfigured)) console.error('Pagina programării:', error);
+  }
+}
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex');
+if (!booking && !unavailable) Astro.response.status = 404;
+
+const hoursLimit = CHANGE_LIMIT_MINUTES / 60;
+const first = booking?.name.split(' ')[0] ?? '';
+const view = booking
+  ? {
+      pending: {
+        title: `Cererea ta așteaptă confirmarea, ${first}`,
+        lead: `Ora e rezervată pentru tine. Primești un email imediat ce ${business.owner} o confirmă.`,
+        state: 'Așteaptă confirmarea',
+      },
+      confirmed: { title: `Te așteptăm, ${first}!`, lead: `${business.owner} ți-a confirmat programarea.`, state: 'Confirmată' },
+      declined: { title: 'Ora nu a putut fi confirmată', lead: `Ne pare rău, ${business.owner} nu te poate primi atunci. Alege altă oră.`, state: 'Refuzată' },
+      expired: { title: 'Cererea a expirat', lead: `${business.owner} nu a apucat să o confirme la timp. Alege altă oră sau sună-ne.`, state: 'Expirată' },
+      cancelled: { title: 'Programare anulată', lead: 'Ora s-a eliberat. Te așteptăm altă dată!', state: 'Anulată' },
+    }[booking.status]
+  : null;
+const active = booking?.status === 'pending' || booking?.status === 'confirmed';
+const cancellable = booking ? canCancel(booking) : false;
+const cancelLabel = booking?.status === 'pending' ? 'Anulează cererea' : 'Anulează programarea';
+---
+
+<Base title="Programarea ta" description="Detaliile programării tale la Noir District." noindex>
+  <section class="container manage">
+    {!booking || !view ? (
+      <div class="manage-card">
+        <p class="eyebrow eyebrow-center">Programare</p>
+        <h1>{unavailable ? 'Momentan nu putem încărca programarea' : 'Programarea nu a fost găsită'}</h1>
+        <p class="lead">
+          {unavailable ? 'Încearcă din nou peste câteva minute sau sună-ne.' : 'Linkul poate fi incomplet. Verifică emailul primit sau sună-ne.'}
+        </p>
+        <div class="btn-row manage-actions">
+          <a class="btn btn-primary" href={telHref}>Sună: {business.phoneDisplay}</a>
+          <a class="btn btn-ghost" href="/#programare">Programare nouă</a>
+        </div>
+      </div>
+    ) : (
+      <div class="manage-card" data-manage data-token={token}>
+        <p class="eyebrow eyebrow-center">Programarea ta</p>
+        <h1 data-manage-title>{view.title}</h1>
+        <p class="lead manage-lead" data-manage-lead>{view.lead}</p>
+        <dl class="booking-done-summary manage-summary">
+          <div><dt>Stare</dt><dd data-manage-state class="manage-state" data-state={booking.status}>{view.state}</dd></div>
+          <div><dt>Serviciu</dt><dd>{booking.service} · {booking.price} lei</dd></div>
+          <div><dt>Când</dt><dd data-manage-when class:list={{ 'is-cancelled': !active }}>{describeWhen(booking.starts_at)}</dd></div>
+          <div><dt>Nume</dt><dd>{booking.name}</dd></div>
+        </dl>
+
+        <p class="booking-error manage-message" data-manage-message role="status"></p>
+
+        {!active ? (
+          <div class="btn-row manage-actions">
+            <a class="btn btn-primary" href="/#programare">Alege o oră</a>
+          </div>
+        ) : cancellable ? (
+          <>
+            <div class="btn-row manage-actions" data-manage-actions>
+              <button type="button" class="btn btn-ghost" data-manage-cancel>{cancelLabel}</button>
+            </div>
+            {/* Anulare: încă o confirmare, ca să nu se întâmple din greșeală */}
+            <div class="manage-cancel" data-cancel-panel hidden>
+              <p>Sigur anulezi? Ora se eliberează și {business.owner} e anunțat.</p>
+              <div class="btn-row manage-actions">
+                <button type="button" class="btn btn-primary" data-cancel-confirm>Da, anulează</button>
+                <button type="button" class="btn btn-ghost" data-cancel-close>Nu, o păstrez</button>
+              </div>
+            </div>
+            <a class="btn btn-ghost manage-new" href="/#programare" data-manage-new hidden>Fă o programare nouă</a>
+          </>
+        ) : (
+          <div class="manage-late">
+            <p>Mai sunt mai puțin de {hoursLimit} ore până la programare, așa că nu o mai poți anula de aici.</p>
+            <a class="btn btn-primary" href={telHref}><Icon name="phone" size={18} /> Sună: {business.phoneDisplay}</a>
+          </div>
+        )}
+        {active && (
+          <p class="booking-note manage-note">
+            O programare confirmată se poate anula de aici cu cel puțin {hoursLimit} ore înainte. După aceea, sună-ne.
+          </p>
+        )}
+      </div>
+    )}
+  </section>
+</Base>
+
+<script>
+  const card = document.querySelector<HTMLElement>('[data-manage]');
+  const actions = card?.querySelector<HTMLElement>('[data-manage-actions]');
+
+  if (card && actions) {
+    const message = card.querySelector<HTMLElement>('[data-manage-message]')!;
+    const panel = card.querySelector<HTMLElement>('[data-cancel-panel]')!;
+    const say = (text: string, ok = false) => {
+      message.textContent = text;
+      message.classList.toggle('is-ok', ok);
+    };
+
+    card.querySelector('[data-manage-cancel]')!.addEventListener('click', () => {
+      say('');
+      actions.hidden = true;
+      panel.hidden = false;
+    });
+    card.querySelector('[data-cancel-close]')!.addEventListener('click', () => {
+      actions.hidden = false;
+      panel.hidden = true;
+    });
+
+    card.querySelector('[data-cancel-confirm]')!.addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = 'Se anulează…';
+      let data: { ok?: boolean; error?: string } = {};
+      try {
+        const res = await fetch(`/api/programare/${card.dataset.token}/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'cancel' }),
+        });
+        data = await res.json();
+      } catch {
+        /* mesajul de mai jos */
+      }
+      if (data.ok) {
+        card.querySelector('[data-manage-title]')!.textContent = 'Programare anulată';
+        card.querySelector('[data-manage-lead]')!.textContent = 'Ora s-a eliberat. Te așteptăm altă dată!';
+        const state = card.querySelector<HTMLElement>('[data-manage-state]')!;
+        state.textContent = 'Anulată';
+        state.dataset.state = 'cancelled';
+        card.querySelector('[data-manage-when]')!.classList.add('is-cancelled');
+        card.querySelector('.manage-note')?.remove();
+        say('Gata. Ți-am trimis confirmarea anulării pe email.', true);
+        panel.hidden = true;
+        card.querySelector<HTMLElement>('[data-manage-new]')!.hidden = false;
+      } else {
+        say(data.error ?? 'Nu am putut anula. Încearcă din nou sau sună-ne.');
+        btn.disabled = false;
+        btn.textContent = 'Da, anulează';
+      }
+    });
+  }
+</script>

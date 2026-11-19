@@ -1,0 +1,194 @@
+/* Pagina de administrare: simplă, clară, butoane mari (se folosește mai ales de pe telefon). */
+
+html { font-size: 16px; }
+body.admin { padding-bottom: 3rem; }
+
+.admin-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  background: rgb(10 10 10 / 0.96);
+  border-bottom: 1px solid var(--line);
+}
+.admin-brand { font-family: var(--font-display); font-size: 1.25rem; }
+.admin-brand span {
+  margin-left: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-main { display: grid; gap: 1rem; width: min(100%, 44rem); margin-inline: auto; padding: 1rem; }
+
+.admin-flash {
+  padding: 0.75rem 1rem;
+  border: 1px solid #2f5d40;
+  border-radius: 4px;
+  background: #13241a;
+  color: #9fe0b5;
+  font-size: 0.9375rem;
+}
+.admin-flash.is-error { border-color: #6b3328; background: #2a1511; color: #f0a796; }
+
+.admin-card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.admin-card h1 { margin-bottom: 0.75rem; font-size: 1.5rem; }
+.admin-card summary { cursor: pointer; font-weight: 600; }
+.admin-card[open] summary { margin-bottom: 1rem; }
+.admin-login form { display: grid; gap: 1rem; }
+
+.admin-form { display: grid; gap: 0.875rem; }
+.admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.admin-field { display: grid; gap: 0.3rem; font-size: 0.8125rem; color: var(--muted); }
+.admin-field input,
+.admin-field select,
+.admin-date input {
+  min-height: 2.875rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* fără zoom pe iPhone */
+  color-scheme: dark;
+}
+
+.admin-btn {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.admin-btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.admin-btn-danger { border-color: #6b3328; color: #f0a796; }
+.admin-link {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Navigare pe zile */
+.admin-days { display: flex; align-items: center; gap: 0.5rem; }
+.admin-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+.admin-date { flex: 1; }
+.admin-date input { width: 100%; }
+.admin-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.375rem; padding: 0; list-style: none; }
+.admin-week a {
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  text-decoration: none;
+  text-transform: capitalize;
+  color: var(--muted);
+}
+.admin-week b { font-size: 1rem; color: var(--text); }
+.admin-week a.is-current { border-color: var(--text); color: var(--text); }
+
+.admin-title { display: grid; gap: 0.125rem; font-size: 1.75rem; text-transform: capitalize; }
+.admin-title small { font-family: var(--font-body); font-size: 0.8125rem; text-transform: none; color: var(--muted); }
+
+/* Programările */
+.admin-list { display: grid; gap: 0.625rem; padding: 0; list-style: none; }
+.admin-empty { padding: 1.5rem; border: 1px dashed var(--line-strong); border-radius: 6px; text-align: center; color: var(--muted); }
+.admin-booking {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.375rem 1rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--text);
+  border-radius: 6px;
+}
+.admin-booking form { grid-column: 1 / -1; }
+.admin-booking form .admin-btn { width: 100%; }
+.admin-booking-time { font-family: var(--font-display); font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+.admin-booking-main { display: grid; gap: 0.125rem; font-size: 0.875rem; color: var(--muted); }
+.admin-booking-name { font-size: 1.0625rem; font-weight: 600; color: var(--text); }
+.admin-contact { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.admin-contact a { color: var(--text); }
+.admin-tag {
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.admin-booking.is-cancelled { border-left-color: var(--line-strong); opacity: 0.55; }
+.admin-booking.is-cancelled .admin-booking-time { text-decoration: line-through; }
+.admin-booking.is-block { border-left-color: #8a6d3b; background: repeating-linear-gradient(-45deg, var(--surface) 0 10px, #151515 10px 20px); }
+
+.admin-flash.is-pending { border-color: #8a6d3b; background: #241e10; color: #e7c77a; }
+.admin-booking.is-pending { border-left-color: #e7c77a; }
+.admin-tag.is-pending { border-color: #8a6d3b; color: #e7c77a; }
+.admin-booking-actions { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.admin-booking-actions form { grid-column: auto; }
+
+/* Pagina de confirmare (linkul din WhatsApp) */
+.confirm-card { display: grid; gap: 1rem; }
+.confirm-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.confirm-state::before { content: ''; width: 0.55em; height: 0.55em; border-radius: 50%; background: currentColor; }
+.confirm-state[data-state='pending'] { color: #e7c77a; }
+.confirm-state[data-state='confirmed'] { color: #9fe0b5; }
+.confirm-state:is([data-state='declined'], [data-state='expired'], [data-state='cancelled']) { color: var(--muted); }
+.admin-card .confirm-when { margin: 0; font-size: 1.75rem; }
+.confirm-when::first-letter { text-transform: uppercase; }
+.confirm-details { display: grid; gap: 0.5rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.confirm-details div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 0.75rem; font-size: 0.9375rem; }
+.confirm-details dt { color: var(--muted); font-size: 0.8125rem; }
+.confirm-details a { color: var(--text); }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+.confirm-btn { width: 100%; min-height: 3.5rem; font-size: 1rem; }
+.confirm-hint { font-size: 0.875rem; color: var(--muted); }
+.confirm-hint a { color: var(--text); }
+
+@media (min-width: 40rem) {
+  .admin-booking { grid-template-columns: 7.5rem 1fr auto; align-items: center; }
+  .admin-booking form { grid-column: auto; }
+  .admin-booking form .admin-btn { width: auto; }
+}

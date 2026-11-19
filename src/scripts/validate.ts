@@ -93,3 +93,23 @@ export function checkPhone(raw: string): Check {
   }
   return { ok: false, error: 'Scrie numărul cu 0 în față (07…) sau cu prefixul țării (+…).' };
 }
+
+/* ---------------- Email ---------------- */
+
+// Formă simplă și strictă: nume@domeniu.tld, fără spații, ghilimele sau caractere ciudate.
+const EMAIL = /^[a-z0-9](?:[a-z0-9._%+-]{0,62}[a-z0-9_-])?@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*\.[a-z]{2,24}$/;
+// Greșeli frecvente de scriere a domeniului → sugestie.
+const TYPOS: Record<string, string> = {
+  'gmial.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.ro': 'gmail.com', 'gamil.com': 'gmail.com',
+  'yahoo.co': 'yahoo.com', 'yaho.com': 'yahoo.com', 'hotmail.co': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'outlok.com': 'outlook.com',
+};
+
+export function checkEmail(raw: string): Check {
+  const value = clean(raw).toLowerCase();
+  if (!value) return { ok: false, error: 'Scrie-ți adresa de email (primești confirmarea pe ea).' };
+  if (value.length > 120) return { ok: false, error: 'Adresa de email e prea lungă.' };
+  if (!EMAIL.test(value) || value.includes('..')) return { ok: false, error: 'Adresa de email nu pare corectă (ex. nume@gmail.com).' };
+  const domain = value.split('@')[1];
+  if (TYPOS[domain]) return { ok: false, error: `Ai vrut să scrii ${value.split('@')[0]}@${TYPOS[domain]}?` };
+  return { ok: true, value };
+}

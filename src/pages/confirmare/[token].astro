@@ -1,0 +1,170 @@
+---
+// Pagina lui Orlando pentru o cerere (linkul vine pe WhatsApp): o confirmă sau o refuză dintr-un buton.
+// Fără parolă: linkul e o cheie aleatorie, imposibil de ghicit, știută doar de Orlando.
+// Butoanele trimit formulare POST (deschiderea linkului, inclusiv previzualizarea făcută de WhatsApp,
+// nu schimbă nimic). După acțiune, pagina se reîncarcă cu rezultatul (POST → redirect → GET).
+import { Font } from 'astro:assets';
+import '../../styles/global.css';
+import '../../styles/admin.css';
+import { business } from '../../data/business';
+import { store, NotConfigured, type Booking, type Status } from '../../lib/store';
+import { isToken, manageUrl, sameOrigin, sweepExpired } from '../../lib/booking-server';
+import { describeWhen, emailClient } from '../../lib/notify';
+
+export const prerender = false;
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Referrer-Policy', 'no-referrer');
+
+const token = Astro.params.token ?? '';
+let booking: Booking | null = null;
+let problem = '';
+
+try {
+  if (isToken(token)) {
+    await sweepExpired().catch(() => {});
+    booking = await store().byAdminToken(token);
+  }
+} catch (error) {
+  problem = error instanceof NotConfigured ? 'Baza de date nu e configurată.' : 'Nu am putut încărca cererea. Încearcă din nou.';
+  if (!(error instanceof NotConfigured)) console.error('Confirmare:', error);
+}
+
+// Acțiunile (Confirmă / Refuză / Anulează). Fiecare se face o singură dată, chiar dacă butonul e apăsat de două ori.
+if (Astro.request.method === 'POST' && booking) {
+  if (!sameOrigin(Astro.request, Astro.url)) return new Response('Cerere nepermisă.', { status: 403 });
+  const action = String((await Astro.request.formData()).get('action') ?? '');
+  const moves: Record<string, [Status[], Status, 'confirmed' | 'declined' | 'cancelled']> = {
+    confirm: [['pending'], 'confirmed', 'confirmed'],
+    decline: [['pending'], 'declined', 'declined'],
+    cancel: [['confirmed'], 'cancelled', 'cancelled'],
+  };
+  let result = 'nimic';
+  // O programare a cărei oră a trecut nu se mai confirmă / anulează.
+  if (moves[action] && Date.parse(booking.starts_at) > Date.now()) {
+    const [from, to, email] = moves[action];
+    try {
+      const updated = await store().decide(booking.id, from, to);
+      if (updated) {
+        const sent = await emailClient(email, updated, manageUrl(Astro.url.origin, updated.token));
+        result = `${action}${sent ? '' : '-fara-email'}`;
+      }
+    } catch (error) {
+      console.error('Confirmare – acțiune:', error);
+      result = 'eroare';
+    }
+  }
+  return Astro.redirect(`${Astro.url.pathname}?r=${result}`, 303);
+}
+
+if (!booking && !problem) Astro.response.status = 404;
+
+const r = Astro.url.searchParams.get('r') ?? '';
+const flash: { ok: boolean; text: string } | null = r.startsWith('confirm')
+  ? { ok: true, text: 'Confirmată. Clientul a primit emailul de confirmare, cu linkul de anulare.' }
+  : r.startsWith('decline')
+    ? { ok: true, text: 'Refuzată. Ora s-a eliberat, iar clientul a fost anunțat pe email.' }
+    : r.startsWith('cancel')
+      ? { ok: true, text: 'Anulată. Ora s-a eliberat, iar clientul a fost anunțat pe email.' }
+      : r === 'eroare'
+        ? { ok: false, text: 'Ceva n-a mers. Încearcă din nou.' }
+        : r === 'nimic'
+          ? { ok: false, text: 'Cererea nu mai era în așteptare (vezi starea de mai jos).' }
+          : null;
+const emailFailed = r.endsWith('-fara-email');
+
+const left = booking ? Date.parse(booking.starts_at) - Date.now() : 0;
+const past = left <= 0;
+const STATE: Record<Status, string> = {
+  pending: 'Așteaptă răspunsul tău',
+  confirmed: 'Confirmată',
+  declined: 'Refuzată',
+  cancelled: 'Anulată',
+  expired: 'Expirată (n-ai răspuns la timp)',
+};
+const digits = booking?.phone.replace(/\D/g, '') ?? '';
+---
+
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Cerere de programare · {business.name}</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <Font cssVariable="--font-display" preload />
+  </head>
+  <body class="admin">
+    <header class="admin-top">
+      <p class="admin-brand">{business.name} <span>Cerere</span></p>
+      <a class="admin-link" href="/admin/">Toate programările</a>
+    </header>
+
+    <main class="admin-main">
+      {flash && <p class:list={['admin-flash', { 'is-error': !flash.ok }]} role="status">{flash.text}</p>}
+      {emailFailed && (
+        <p class="admin-flash is-error">Emailul către client nu a plecat. Anunță-l tu: {booking?.phone}.</p>
+      )}
+
+      {!booking ? (
+        <section class="admin-card">
+          <h1>{problem || 'Cererea nu a fost găsită'}</h1>
+          <p>{problem ? '' : 'Linkul poate fi incomplet. Deschide-l din nou din mesajul de pe WhatsApp.'}</p>
+        </section>
+      ) : (
+        <section class="admin-card confirm-card">
+          <p class="confirm-state" data-state={booking.status}>{STATE[booking.status]}</p>
+          <h1 class="confirm-when">{describeWhen(booking.starts_at)}</h1>
+          <dl class="confirm-details">
+            <div><dt>Serviciu</dt><dd>{booking.service} · {booking.price} lei · {booking.duration} min</dd></div>
+            <div><dt>Client</dt><dd>{booking.name}</dd></div>
+            <div><dt>Telefon</dt><dd><a href={`tel:${booking.phone.replace(/\s/g, '')}`}>{booking.phone}</a> · <a href={`https://wa.me/${digits}`} target="_blank" rel="noopener">WhatsApp</a></dd></div>
+            {booking.email && <div><dt>Email</dt><dd><a href={`mailto:${booking.email}`}>{booking.email}</a></dd></div>}
+            {booking.status === 'pending' && booking.expires_at && (
+              <div><dt>Expiră</dt><dd>{describeWhen(booking.expires_at)}</dd></div>
+            )}
+          </dl>
+
+          {booking.status === 'pending' && !past && (
+            <div class="confirm-actions">
+              <form method="post">
+                <input type="hidden" name="action" value="confirm" />
+                <button class="admin-btn admin-btn-primary confirm-btn" type="submit">✓ Confirmă</button>
+              </form>
+              <form method="post" data-confirm={`Refuzi cererea lui ${booking.name}? Clientul primește email și ora se eliberează.`}>
+                <input type="hidden" name="action" value="decline" />
+                <button class="admin-btn admin-btn-danger confirm-btn" type="submit">✕ Refuză</button>
+              </form>
+            </div>
+          )}
+
+          {booking.status === 'confirmed' && !past && (
+            <form method="post" data-confirm={`Anulezi programarea lui ${booking.name}? Clientul primește email și ora se eliberează.`}>
+              <input type="hidden" name="action" value="cancel" />
+              <button class="admin-btn admin-btn-danger confirm-btn" type="submit">Anulează programarea</button>
+            </form>
+          )}
+
+          {(booking.status === 'expired' || booking.status === 'declined') && (
+            <p class="confirm-hint">
+              Dacă vrei totuși să-l primești, sună-l și adaug-o din <a href="/admin/">administrare</a> (dacă ora e încă liberă).
+            </p>
+          )}
+        </section>
+      )}
+    </main>
+
+    <script>
+      // Confirmare înainte de refuz / anulare; butonul se dezactivează după apăsare (fără dublu-click).
+      document.querySelectorAll<HTMLFormElement>('form[method="post"]').forEach((f) =>
+        f.addEventListener('submit', (e) => {
+          if (f.dataset.confirm && !confirm(f.dataset.confirm)) return e.preventDefault();
+          f.querySelector('button')!.disabled = true;
+        }),
+      );
+    </script>
+  </body>
+</html>

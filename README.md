@@ -62,32 +62,67 @@ Orice modificare din `business.ts` se propagă automat în pagini, footer, meta 
 
 ### Programări
 
-Formularul (serviciu → zi → oră → nume/telefon) generează sloturile din program și trimite cererea gata completată pe WhatsApp. Nu există server și nici verificare de disponibilitate: Orlando confirmă manual. Dacă `bookingUrl` e completat, formularul e înlocuit de un buton către platforma externă.
+Vezi secțiunea [Programări](#programări) de mai jos. Dacă `bookingUrl` e completat, formularul e înlocuit de un buton către platforma externă.
+
+### Altele
+
 - Același HTML și același URL pentru ambele interfețe (recomandarea Google pentru mobile-first indexing); diferențele țin doar de CSS.
 - Fără Google Maps embed (~1 MB JS + cookie-uri): butoanele deschid direct Google Maps/Waze.
 - Găzduit pe Vercel (se publică automat la fiecare push pe `main`). `vercel.json`: cache permanent pentru `/_astro/*`, headere de securitate și slash la final de URL.
 
-## Programări (mesaj automat pe WhatsApp-ul lui Orlando)
+## Programări
 
-Formularul trimite cererea la `src/pages/api/programare.ts` (funcție Vercel). Serverul o verifică din nou
-complet (serviciu din listă, zi și oră în program, nume și telefon reale, limite de cereri, capcană pentru
-roboți) și o trimite pe WhatsApp-ul lui Orlando prin [CallMeBot](https://www.callmebot.com/blog/free-api-whatsapp-messages/).
-Dacă trimiterea nu merge, clientul primește butoane de rezervă: WhatsApp și telefon.
+Sistem propriu (fără Mero), cu confirmare de la Orlando:
 
-**Activare (o singură dată, de pe telefonul lui Orlando):**
-1. Adaugă în agendă numărul **+34 644 51 95 23** (orice nume).
-2. Trimite-i pe WhatsApp mesajul: `I allow callmebot to send me messages`
-3. Răspunsul conține cheia: „API Activated for your phone number. Your APIKEY is …”.
-   Dacă nu vine în 2 minute, se reîncearcă după 24 de ore.
+1. Clientul alege serviciul, ziua și ora (doar orele libere, reîmprospătate la 20 de secunde) și își lasă
+   numele, telefonul și emailul. Ora se **rezervă pe loc** (nimeni altcineva nu o mai poate lua).
+2. Clientul primește pe email „am primit cererea”; Orlando primește pe WhatsApp detaliile și un **link**.
+3. Din link, Orlando apasă **Confirmă** sau **Refuză**. Clientul primește emailul cu rezultatul; cel de
+   confirmare conține linkul de **anulare**.
+4. Dacă clientul anulează, ora se eliberează pe site și Orlando primește pe WhatsApp ziua și ora anulate.
+5. Dacă Orlando nu răspunde în 12 ore (cel târziu cu o oră înainte de programare), cererea expiră:
+   ora se eliberează, clientul și Orlando sunt anunțați.
 
-**În Vercel → Settings → Environment Variables** (Production):
-| Nume | Valoare |
+Plus: memento pe email cu o zi înainte, pagină de administrare (/admin/) cu toate programările.
+
+Expirarea se verifică la fiecare vizită pe site și o dată pe zi (cron). Pe planul gratuit Vercel, cron-ul
+rulează doar zilnic, deci anunțul de expirare pleacă la prima vizită pe site după termen.
+
+| Ce | Unde |
 | --- | --- |
-| `CALLMEBOT_PHONE` | numărul lui Orlando cu prefix, ex. `+40745123456` |
-| `CALLMEBOT_APIKEY` | cheia primită |
+| Baza de date (tabelele) | `supabase/schema.sql` — se rulează o dată în Supabase → SQL Editor |
+| Acces la date | `src/lib/store.ts` (Supabase; local, fără chei, o bază simulată în memorie) |
+| Program, ore libere, fus orar | `src/lib/schedule.ts` (același cod în browser și pe server) |
+| Expirare, reguli de anulare, linkuri | `src/lib/booking-server.ts` |
+| Emailuri și WhatsApp | `src/lib/notify.ts` |
+| Cererea clientului | `src/pages/api/programare/index.ts` |
+| Confirmă / Refuză (linkul lui Orlando) | `src/pages/confirmare/[token].astro` |
+| Anulare (linkul clientului) | `src/pages/api/programare/[token].ts`, pagina `src/pages/programare/[token].astro` |
+| Orele ocupate (pentru formular) | `src/pages/api/disponibilitate.ts` |
+| Administrare (Orlando) | `/admin/` → `src/pages/admin/index.astro`, acțiuni în `src/pages/api/admin.ts` |
+| Memento zilnic | `src/pages/api/cron/remindere.ts`, pornit de Vercel (`crons` în `vercel.json`) |
 
-După salvare, un nou deploy (Deployments → Redeploy). Fără chei: local trimiterea e simulată în consolă,
-online formularul arată butoanele de rezervă.
+**Siguranță:** baza de date refuză două programări suprapuse (regulă `exclude` în Postgres), deci nu
+pot apărea dubluri nici la cereri simultane. Totul e verificat din nou pe server. Datele se citesc
+doar de pe server (cheia `service_role` nu ajunge niciodată în browser; tabelele au RLS fără acces public).
+
+**Variabile în Vercel → Settings → Environment Variables (Production):**
+
+| Nume | Ce e |
+| --- | --- |
+| `SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → `service_role` (secretă) |
+| `GMAIL_USER` | adresa Gmail a frizeriei |
+| `GMAIL_APP_PASSWORD` | Google → Securitate → Verificare în doi pași → Parole pentru aplicații |
+| `CALLMEBOT_PHONE` / `CALLMEBOT_APIKEY` | numărul lui Orlando (+40…) și cheia CallMeBot (pașii mai jos) |
+| `ADMIN_PASSWORD` | parola paginii /admin/ |
+| `CRON_SECRET` | un text lung, aleatoriu: doar Vercel poate porni mementourile |
+
+**Activare CallMeBot (o dată, de pe telefonul lui Orlando):** salvează **+34 644 51 95 23**, trimite-i pe
+WhatsApp `I allow callmebot to send me messages` și primești cheia („Your APIKEY is …”).
+
+**Local:** fără chei, `npm run dev` folosește o bază simulată, iar emailurile și WhatsApp-ul apar în
+consolă. Parola locală pentru /admin/ se pune în `.env` (`ADMIN_PASSWORD=…`; fișierul nu se urcă pe GitHub).
 
 ## Înainte de lansare
 
