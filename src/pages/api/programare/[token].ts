@@ -4,7 +4,7 @@
 import type { APIRoute } from 'astro';
 import { business } from '../../../data/business';
 import { NotConfigured, store } from '../../../lib/store';
-import { emailClient, orlandoText, whatsappOrlando } from '../../../lib/notify';
+import { emailClient, notifyOrlando, orlandoText } from '../../../lib/notify';
 import { canCancel, clientIp, isToken, json, limited, manageUrl, sameOrigin } from '../../../lib/booking-server';
 
 export const prerender = false;
@@ -39,7 +39,7 @@ export const POST: APIRoute = async ({ request, params, url, clientAddress }) =>
     if (!cancelled) return fail(409, 'Programarea nu mai e activă.');
     await Promise.all([
       emailClient('cancelled', cancelled, manageUrl(url.origin, cancelled.token)),
-      whatsappOrlando(orlandoText('cancelled', cancelled)),
+      notifyOrlando(orlandoText('cancelled', cancelled)),
     ]);
     return json(200, { ok: true, status: 'cancelled' });
   } catch (error) {

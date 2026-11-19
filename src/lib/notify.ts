@@ -1,6 +1,7 @@
 // Notificări (doar pe server):
 //   - email către client: cerere primită, confirmată, refuzată, expirată, anulată, memento (de pe Gmail-ul frizeriei);
-//   - WhatsApp către Orlando: cerere nouă (cu linkul de confirmare), anulare, cerere expirată (prin CallMeBot).
+//   - către Orlando: cerere nouă (cu linkul de confirmare), anulare, cerere expirată — pe WhatsApp
+//     (CallMeBot) și, ca rezervă, pe emailul frizeriei.
 // Fiecare trimitere are o a doua încercare. Local, fără chei, mesajele apar doar în consolă.
 import nodemailer, { type Transporter } from 'nodemailer';
 import { getSecret } from 'astro:env/server';
@@ -29,8 +30,9 @@ async function twice(run: () => Promise<void>) {
 /* ---------------- WhatsApp către Orlando ---------------- */
 
 export async function whatsappOrlando(text: string) {
-  const to = getSecret('CALLMEBOT_PHONE');
-  const apiKey = getSecret('CALLMEBOT_APIKEY');
+  // Spațiile scrise din greșeală („+40 745 …”) nu contează.
+  const to = getSecret('CALLMEBOT_PHONE')?.replace(/\s+/g, '');
+  const apiKey = getSecret('CALLMEBOT_APIKEY')?.replace(/\s+/g, '');
   if (!to || !apiKey) {
     if (import.meta.env.DEV) console.info(`\n[WhatsApp simulat către Orlando]\n${text}\n`);
     return false;
@@ -49,6 +51,30 @@ export async function whatsappOrlando(text: string) {
     return true;
   } catch (error) {
     console.error('WhatsApp (CallMeBot) nu a trimis mesajul:', error);
+    return false;
+  }
+}
+
+/**
+ * Anunță-l pe Orlando pe ambele căi: WhatsApp (CallMeBot) și email pe adresa frizeriei (aceeași de pe
+ * care pleacă emailurile). Dacă una pică sau nu e configurată, cealaltă tot ajunge.
+ */
+export async function notifyOrlando(text: string) {
+  const [whatsapp, email] = await Promise.all([whatsappOrlando(text), emailOrlando(text)]);
+  return whatsapp || email;
+}
+
+async function emailOrlando(text: string) {
+  const m = mailer();
+  if (!m) return false;
+  const [subject, ...body] = text.split('\n');
+  try {
+    await twice(async () => {
+      await m.transport.sendMail({ from: m.from, to: m.user, subject, text: body.join('\n').trim() });
+    });
+    return true;
+  } catch (error) {
+    console.error('Emailul către Orlando nu a putut fi trimis:', error);
     return false;
   }
 }
@@ -88,10 +114,11 @@ export function orlandoText(kind: OrlandoKind, b: Booking, link?: string) {
 let transport: Transporter | null = null;
 function mailer() {
   const user = getSecret('GMAIL_USER');
-  const pass = getSecret('GMAIL_APP_PASSWORD');
+  // Google afișează parola de aplicație în grupuri („abcd efgh ijkl mnop”); spațiile nu fac parte din ea.
+  const pass = getSecret('GMAIL_APP_PASSWORD')?.replace(/\s+/g, '');
   if (!user || !pass) return null;
   transport ??= nodemailer.createTransport({ service: 'gmail', auth: { user, pass } });
-  return { transport, from: `"${business.name}" <${user}>` };
+  return { transport, user, from: `"${business.name}" <${user}>` };
 }
 
 export type EmailKind = 'received' | 'confirmed' | 'declined' | 'expired' | 'cancelled' | 'reminder';

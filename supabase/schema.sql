@@ -51,3 +51,5 @@ create index if not exists blocks_starts_at on blocks (starts_at);
 -- Securitate: fără nicio regulă de acces public. Doar serverul (service_role) poate citi și scrie.
 alter table bookings enable row level security;
 alter table blocks enable row level security;
+grant select, insert, update, delete on table bookings, blocks to service_role;
+revoke all on table bookings, blocks from anon, authenticated;

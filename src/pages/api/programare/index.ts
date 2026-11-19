@@ -7,7 +7,7 @@ import { checkEmail, checkName, checkPhone } from '../../../scripts/validate';
 import { business } from '../../../data/business';
 import { addDays, isDayKey, isRealDay, local } from '../../../lib/schedule';
 import { NotConfigured, SlotTaken, store } from '../../../lib/store';
-import { emailClient, orlandoText, whatsappOrlando } from '../../../lib/notify';
+import { emailClient, notifyOrlando, orlandoText } from '../../../lib/notify';
 import {
   clientIp,
   confirmUrl,
@@ -91,7 +91,7 @@ export const POST: APIRoute = async ({ request, url, clientAddress }) => {
   const link = manageUrl(url.origin, booking.token);
   const [emailSent] = await Promise.all([
     emailClient('received', booking, link),
-    whatsappOrlando(orlandoText('new', booking, confirmUrl(url.origin, booking.admin_token))),
+    notifyOrlando(orlandoText('new', booking, confirmUrl(url.origin, booking.admin_token))),
   ]);
   return json(200, { ok: true, manage: link, emailSent });
 };

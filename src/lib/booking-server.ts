@@ -3,7 +3,7 @@ import { business, serviceGroups } from '../data/business';
 import { SITE_URL } from '../data/site.mjs';
 import { store, type Booking, type Interval } from './store';
 import { addDays, freeSlots, local, toInstant, toMinutes, type Busy, type SlotRules } from './schedule';
-import { emailClient, orlandoText, whatsappOrlando } from './notify';
+import { emailClient, notifyOrlando, orlandoText } from './notify';
 
 export const rules: SlotRules = { hours: business.hours, slotMinutes: business.slotMinutes, leadMinutes: 30 };
 /** Clientul poate anula singur o programare confirmată cu cel puțin atâtea minute înainte. */
@@ -31,7 +31,7 @@ export function pendingUntil(startsAt: string, now = Date.now()) {
 export async function sweepExpired() {
   const expired = await store().expireDue(new Date().toISOString());
   await Promise.all(
-    expired.map((b) => Promise.all([emailClient('expired', b, manageUrl(SITE_URL, b.token)), whatsappOrlando(orlandoText('expired', b))])),
+    expired.map((b) => Promise.all([emailClient('expired', b, manageUrl(SITE_URL, b.token)), notifyOrlando(orlandoText('expired', b))])),
   );
   return expired.length;
 }
