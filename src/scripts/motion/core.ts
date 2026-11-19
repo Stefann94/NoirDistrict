@@ -33,6 +33,9 @@ lenis.on('scroll', ScrollTrigger.update);
 // la vechea limită (și butoanele spre secțiunile de jos s-ar opri mai sus).
 ScrollTrigger.addEventListener('refresh', () => lenis.resize());
 gsap.ticker.add((time) => lenis.raf(time * 1000));
+// Ferestrele peste pagină (poza mărită) opresc derularea paginii din spate cât sunt deschise.
+document.addEventListener('nd:lock', () => lenis.stop());
+document.addEventListener('nd:unlock', () => lenis.start());
 gsap.ticker.lagSmoothing(0);
 
 /* ---------------- Navigare spre secțiuni ---------------- */

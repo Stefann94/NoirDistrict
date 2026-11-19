@@ -243,3 +243,114 @@
 .page-head .btn-row { margin-top: 1.5rem; }
 
 .notfound { display: grid; gap: 1rem; padding-block: 5rem; }
+
+/* ---- Butonul „vezi poza mărită” din colțul pozelor ---- */
+.gallery figure,
+.work figure { position: relative; }
+.zoom-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: 50%;
+  background: rgb(10 10 10 / 0.55);
+  color: #fff;
+  cursor: zoom-in;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.3s, transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s, color 0.2s;
+}
+/* Apare doar când mouse-ul e pe poză (sau când ajungi la el cu tastatura) */
+figure:hover .zoom-btn,
+.zoom-btn:focus-visible { opacity: 1; transform: none; }
+.zoom-btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+/* Telefon / tabletă (fără mouse): vizibil, dar discret */
+@media (hover: none) {
+  .zoom-btn { width: 2rem; height: 2rem; opacity: 0.85; transform: none; }
+}
+
+/* ---- Poza mărită (Lightbox.astro) ---- */
+html:has(.lightbox[open]) { overflow: hidden; }
+.lightbox {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  overflow: hidden;
+}
+.lightbox::backdrop { background: rgb(5 5 5 / 0.94); }
+.lightbox[open] { display: grid; animation: lb-in 0.3s ease-out; }
+@keyframes lb-in { from { opacity: 0; } }
+.lightbox-figure {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 4rem 5rem 3rem;
+}
+.lightbox-img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100dvh - 9rem);
+  object-fit: contain;
+  border-radius: var(--radius);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 0.35s, transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.lightbox-img.is-loaded { opacity: 1; transform: none; }
+.lightbox-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  text-align: center;
+}
+.lightbox-count { font-family: var(--font-body); font-size: 0.75rem; letter-spacing: 0.12em; color: var(--muted); }
+.lightbox-btn {
+  position: fixed;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 50%;
+  background: rgb(10 10 10 / 0.6);
+  color: var(--text);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.lightbox-btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+.lightbox-btn[hidden] { display: none; }
+.lightbox-close { top: 1.25rem; right: 1.25rem; }
+.lightbox-prev,
+.lightbox-next { top: 50%; translate: 0 -50%; }
+.lightbox-prev { left: 1.25rem; }
+.lightbox-next { right: 1.25rem; }
+@media (max-width: 47.99rem) {
+  .lightbox-figure { padding: 4rem 0.75rem 6rem; }
+  .lightbox-img { max-height: calc(100dvh - 12rem); }
+  .lightbox-close { top: 0.875rem; right: 0.875rem; }
+  /* Săgețile jos, la îndemâna degetului mare */
+  .lightbox-prev,
+  .lightbox-next { top: auto; bottom: 1.75rem; translate: none; }
+  .lightbox-prev { left: calc(50% - 3.5rem); }
+  .lightbox-next { right: calc(50% - 3.5rem); }
+}

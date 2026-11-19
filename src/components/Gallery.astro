@@ -3,6 +3,7 @@
 // `grid`: grilă pe toate ecranele (pagina Galerie).
 import { Picture } from 'astro:assets';
 import { galleryImages } from '../lib/gallery';
+import ZoomButton from './ZoomButton.astro';
 
 interface Props {
   /** Doar aceste poze, în ordinea dată (după numele fișierului, fără număr). */
@@ -17,7 +18,7 @@ const images = slugs
 ---
 
 {images.length > 0 && (
-  <ul class:list={['gallery', `gallery-${layout}`]} aria-label="Lucrări Noir District">
+  <ul class:list={['gallery', `gallery-${layout}`]} aria-label="Lucrări Noir District" data-lightbox-group>
     {images.map((img, i) => (
       <li>
         <figure>
@@ -33,6 +34,7 @@ const images = slugs
             decoding="async"
             pictureAttributes={{ 'data-img': '' }}
           />
+          <ZoomButton src={img.src} alt={img.alt} title={img.title} />
           <figcaption>
             <span class="gallery-num">{String(i + 1).padStart(2, '0')}</span>
             {img.title}

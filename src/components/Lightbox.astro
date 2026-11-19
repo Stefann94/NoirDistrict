@@ -1,0 +1,98 @@
+---
+// Poza mărită: o singură fereastră pentru tot site-ul. Se deschide din butoanele `[data-lightbox]`
+// (colțul pozelor din galerii); navighează între pozele aceluiași `[data-lightbox-group]`.
+// <dialog> nativ: Esc închide, focusul revine pe buton, cititoarele de ecran îl anunță corect.
+import Icon from './Icon.astro';
+---
+
+<dialog class="lightbox" data-lightbox-dialog aria-label="Poză mărită">
+  <figure class="lightbox-figure">
+    <img class="lightbox-img" alt="" data-lb-img decoding="async" />
+    <figcaption class="lightbox-caption">
+      <span class="lightbox-count" data-lb-count></span>
+      <span data-lb-title></span>
+    </figcaption>
+  </figure>
+  <button type="button" class="lightbox-btn lightbox-close" data-lb-close aria-label="Închide">
+    <Icon name="close" size={20} />
+  </button>
+  <button type="button" class="lightbox-btn lightbox-prev" data-lb-prev aria-label="Poza anterioară">
+    <Icon name="chevron-left" size={22} />
+  </button>
+  <button type="button" class="lightbox-btn lightbox-next" data-lb-next aria-label="Poza următoare">
+    <Icon name="chevron-right" size={22} />
+  </button>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox-dialog]');
+  if (dialog) {
+    const img = dialog.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const title = dialog.querySelector<HTMLElement>('[data-lb-title]')!;
+    const count = dialog.querySelector<HTMLElement>('[data-lb-count]')!;
+    const prev = dialog.querySelector<HTMLButtonElement>('[data-lb-prev]')!;
+    const next = dialog.querySelector<HTMLButtonElement>('[data-lb-next]')!;
+    let group: HTMLElement[] = [];
+    let index = 0;
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    const preload = (i: number) => {
+      const t = group[(i + group.length) % group.length];
+      if (t?.dataset.full) new Image().src = t.dataset.full;
+    };
+
+    function show(i: number) {
+      index = (i + group.length) % group.length;
+      const t = group[index];
+      img.classList.remove('is-loaded');
+      img.onload = () => img.classList.add('is-loaded');
+      img.src = t.dataset.full ?? '';
+      img.alt = t.dataset.alt ?? '';
+      title.textContent = t.dataset.title ?? ''; // text simplu, niciodată HTML
+      count.textContent = group.length > 1 ? `${pad(index + 1)} / ${pad(group.length)}` : '';
+      prev.hidden = next.hidden = group.length < 2;
+      preload(index + 1);
+      preload(index - 1);
+    }
+
+    document.addEventListener('click', (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>('[data-lightbox]');
+      if (!trigger) return;
+      e.preventDefault();
+      const scope = trigger.closest('[data-lightbox-group]') ?? document;
+      group = [...scope.querySelectorAll<HTMLElement>('[data-lightbox]')];
+      show(group.indexOf(trigger));
+      dialog.showModal();
+      document.dispatchEvent(new CustomEvent('nd:lock'));
+    });
+
+    dialog.addEventListener('close', () => {
+      document.dispatchEvent(new CustomEvent('nd:unlock'));
+      img.removeAttribute('src');
+    });
+    dialog.querySelector('[data-lb-close]')!.addEventListener('click', () => dialog.close());
+    prev.addEventListener('click', () => show(index - 1));
+    next.addEventListener('click', () => show(index + 1));
+    // Click pe fundal (în afara pozei și a butoanelor) închide.
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || (e.target as Element).classList.contains('lightbox-figure')) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') show(index + 1);
+      else if (e.key === 'ArrowLeft') show(index - 1);
+    });
+    // Glisare pe telefon: stânga/dreapta = poza următoare/anterioară, în jos = închide.
+    let x = 0;
+    let y = 0;
+    dialog.addEventListener('touchstart', (e) => {
+      x = e.touches[0].clientX;
+      y = e.touches[0].clientY;
+    }, { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - x;
+      const dy = e.changedTouches[0].clientY - y;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) show(index + (dx < 0 ? 1 : -1));
+      else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) dialog.close();
+    }, { passive: true });
+  }
+</script>
