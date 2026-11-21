@@ -95,6 +95,17 @@ p { text-wrap: pretty; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+/* Fără evidențierea albastră a browserului la atingere / click (telefon) și fără selecția albastră
+   a textului când apeși repede de mai multe ori pe un buton. Conturul de la tastatură (mai sus) rămâne. */
+* { -webkit-tap-highlight-color: transparent; }
+button,
+[role='button'],
+[role='tab'],
+.btn,
+.chip,
+.choice,
+summary { -webkit-user-select: none; user-select: none; }
+
 .skip-link {
   position: absolute;
   left: var(--gutter);

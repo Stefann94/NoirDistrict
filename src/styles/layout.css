@@ -39,6 +39,7 @@
 }
 .header-nav,
 .header-cta { display: none; }
+.header-cta-short { display: none; } /* „Programare”: textul scurt, doar pe telefon */
 .header-call {
   display: grid;
   place-items: center;

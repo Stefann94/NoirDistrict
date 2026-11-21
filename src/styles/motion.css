@@ -12,6 +12,7 @@
 .motion .hero-words,
 .motion .hero-foot,
 .motion .hero-frame,
+.motion .hero-addr,
 .motion .hero-ctas > * { opacity: 0; }
 
 /* Dezvăluirea pozelor: un „capac” de culoarea fundalului care se retrage în sus.

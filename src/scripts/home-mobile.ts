@@ -1,8 +1,11 @@
 // Prima pagină, doar pe telefon:
 // - prețurile pe file (Tuns / Barbă / Pachete): text mare, câte o categorie, glisare stânga/dreapta;
 // - galeria: contorul 01/06 și bara de progres urmăresc glisarea.
+// - hero: bara de sus de sticlă cât ești sus de tot; „Prima oră liberă”, din programările reale.
 // Pe desktop nu face nimic (acolo galeria e animată de GSAP, iar tabla are trei coloane).
 import { fit } from './fit';
+import { business, serviceGroups } from '../data/business';
+import { addDays, freeSlots, local, type Busy } from '../lib/schedule';
 
 const phone = matchMedia('(max-width: 47.99rem)');
 
@@ -99,6 +102,43 @@ track?.addEventListener('scroll', () => {
   if (!raf) raf = requestAnimationFrame(updateProgress);
 }, { passive: true });
 
+/* ---------------- Hero: bara de sticlă și prima oră liberă ---------------- */
+
+// Bara de sus e de sticlă (peste poză) doar cât ești sus de tot; la derulare redevine plină.
+const header = document.querySelector<HTMLElement>('.header');
+const updateTop = () => header?.classList.toggle('is-top', scrollY < 8);
+updateTop();
+addEventListener('scroll', updateTop, { passive: true });
+
+// „Prima oră liberă: azi, 14:30” — din programările reale (aceleași ore ca în formular).
+const next = document.querySelector<HTMLElement>('[data-next-slot]');
+async function showNextSlot() {
+  if (!next || !phone.matches || !next.hidden) return;
+  try {
+    const res = await fetch('/api/disponibilitate/', { cache: 'no-store' });
+    const data = (await res.json()) as { ok?: boolean; today?: string; days?: Record<string, Busy[]> };
+    if (!data.ok || !data.days) return;
+    const today = data.today ?? local().day;
+    const duration = Math.min(...serviceGroups.flatMap((g) => g.services).map((s) => s.duration));
+    const rules = { hours: business.hours, slotMinutes: business.slotMinutes, leadMinutes: 30 };
+    for (let i = 0; i < business.bookingDays; i++) {
+      const day = addDays(today, i);
+      const slot = freeSlots(day, duration, data.days[day] ?? [], rules)[0];
+      if (!slot) continue;
+      const [y, m, d] = day.split('-').map(Number);
+      const label =
+        i === 0 ? 'azi' : i === 1 ? 'mâine' : new Intl.DateTimeFormat('ro-RO', { weekday: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d)));
+      next.querySelector('[data-next-slot-text]')!.textContent = `${label}, ${slot}`;
+      next.hidden = false;
+      fit();
+      return;
+    }
+  } catch {
+    /* fără rețea sau programări inactive: rândul rămâne ascuns */
+  }
+}
+showNextSlot();
+
 /* ---------------- Pornire și schimbarea orientării ---------------- */
 
 setupTabs();
@@ -106,4 +146,5 @@ updateProgress();
 phone.addEventListener('change', () => {
   setupTabs();
   updateProgress();
+  showNextSlot();
 });

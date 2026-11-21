@@ -8,7 +8,7 @@ import Booking from '../components/Booking.astro';
 import Location from '../components/Location.astro';
 import Icon from '../components/Icon.astro';
 import ZoomButton from '../components/ZoomButton.astro';
-import { business, serviceGroups, mapsHref, hoursSummary } from '../data/business';
+import { business, serviceGroups, mapsHref, telHref, hoursSummary } from '../data/business';
 import { galleryBySlug, galleryImages } from '../lib/gallery';
 import heroImage from '../assets/hero/hero-carare-color.jpg'; // varianta alb-negru: hero-carare.jpg
 import '../styles/home.css';
@@ -59,10 +59,18 @@ const total = String(galleryImages.length).padStart(2, '0');
         <span><em>Noir.</em></span>
       </p>
       <h1 id="hero-title" class="hero-title">Frizerie pentru bărbați în {business.address.city}</h1>
+      {/* Doar pe telefon (varianta „afiș”): adresa, butoane rapide și prima oră liberă. */}
+      <a class="hero-addr" href={mapsHref} target="_blank" rel="noopener"><Icon name="pin" size={14} /> {business.address.street}</a>
       <div class="btn-row hero-ctas">
         <a class="btn btn-primary" href="#programare">Programează-te</a>
-        <a class="btn btn-ghost" href="#preturi">Vezi prețurile</a>
+        <a class="btn btn-ghost hero-prices" href="#preturi">Vezi prețurile</a>
+        <a class="btn btn-ghost hero-icon" href={telHref} aria-label={`Sună la ${business.phoneDisplay}`}><Icon name="phone" size={18} /></a>
+        <a class="btn btn-ghost hero-icon" href={mapsHref} target="_blank" rel="noopener" aria-label="Deschide harta"><Icon name="navigate" size={18} /></a>
       </div>
+      <a class="hero-next" href="#programare" data-next-slot hidden>
+        <span>Prima oră liberă</span>
+        <b data-next-slot-text></b>
+      </a>
     </div>
 
     <div class="hero-foot">

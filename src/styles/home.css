@@ -96,6 +96,10 @@
   color: var(--muted);
 }
 .hero-ctas { width: 100%; margin-top: 0.5rem; }
+/* Adresa, butoanele cu iconițe și prima oră liberă există doar pe telefon (mobile.css). */
+.hero-addr,
+.hero-icon,
+.hero-next { display: none; }
 
 /* Banda de jos: adresa și programul */
 .hero-foot {

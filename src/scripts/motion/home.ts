@@ -53,7 +53,7 @@ function hero(introDone: Promise<void>) {
   const lockup = $('.hero-lockup', section);
   const words = $('.hero-words', section)!;
   const title = $('.hero-title', section)!;
-  const ctas = $$('.hero-ctas > *', section);
+  const ctas = $$('.hero-addr, .hero-ctas > *', section);
   const foot = $('.hero-foot', section);
   const content = $('.hero-content', section)!;
 

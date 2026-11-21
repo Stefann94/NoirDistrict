@@ -27,7 +27,9 @@ const path = Astro.url.pathname;
       </ul>
     </nav>
 
-    <a class="btn btn-primary header-cta" href={bookingHref} data-section="programare">Programează-te</a>
+    <a class="btn btn-primary header-cta" href={bookingHref} data-section="programare">
+      <span class="header-cta-long">Programează-te</span><span class="header-cta-short">Programare</span>
+    </a>
 
     <a class="header-call" href={telHref} aria-label={`Sună la ${business.phoneDisplay}`}>
       <Icon name="phone" />
